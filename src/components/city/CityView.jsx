@@ -1,0 +1,139 @@
+import { useState } from 'react';
+import LocationTabs from '../shared/LocationTabs.jsx';
+import CityHeroCard from './CityHeroCard.jsx';
+import DaySelector from './DaySelector.jsx';
+import HourlyScroll from './HourlyScroll.jsx';
+import ForecastList from './ForecastList.jsx';
+import { useWeather } from '../../hooks/useWeather.js';
+import { parseDayData, formatWind, windDirection, generateAlerts } from '../../utils/weatherUtils.js';
+
+export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp }) {
+  const [activeId, setActiveId] = useState(cities[0]?.id);
+  const [dayIndex, setDayIndex] = useState(0);
+
+  const activeCity = cities.find((c) => c.id === activeId) || cities[0];
+  const { data, loading, error, updatedAt, refresh } = useWeather(activeCity, 'city');
+
+  if (updatedAt && typeof onUpdateTimestamp === 'function') {
+    onUpdateTimestamp(updatedAt, refresh);
+  }
+
+  const dayData = parseDayData(data, dayIndex);
+  const alerts = dayData && data ? generateAlerts(data.daily, dayIndex, lang) : [];
+
+  return (
+    <div className="flex flex-col gap-4 pb-20">
+      <div className="pt-3">
+        <LocationTabs
+          locations={cities}
+          activeId={activeId}
+          onSelect={(id) => { setActiveId(id); setDayIndex(0); }}
+          accentClass="bg-[var(--color-city)] text-white"
+        />
+      </div>
+
+      {loading && !data && <SkeletonCity />}
+
+      {error && !data && (
+        <div className="px-4">
+          <div className="bg-[var(--color-alert-bg)] rounded-xl p-4 text-center">
+            <p className="text-[var(--color-alert-text)] text-sm">{t('error')}</p>
+            <button
+              onClick={refresh}
+              className="mt-2 px-4 py-1.5 rounded-full bg-[var(--color-surface-2)] text-sm font-medium text-[var(--color-text)]"
+            >
+              {t('retry')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {data && (
+        <>
+          {alerts.length > 0 && (
+            <div className="px-4 flex flex-col gap-2">
+              {alerts.map((a, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-alert-bg)] text-[var(--color-alert-text)] text-sm"
+                >
+                  <span>{a.icon}</span>
+                  <span>{t(a.key, a.vars)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <CityHeroCard dayData={dayData} lang={lang} t={t} />
+
+          <DaySelector
+            dates={data.daily.time}
+            selectedIndex={dayIndex}
+            onSelect={setDayIndex}
+            t={t}
+          />
+
+          {dayData && (
+            <div className="flex gap-6 px-4">
+              <MetricItem
+                label={t('wind')}
+                value={formatWind(dayData.windspeed, windUnit)}
+                sub={windDirection(dayData.winddirection)}
+                accent
+              />
+              <MetricItem
+                label={t('rain')}
+                value={`${dayData.rainProb}%`}
+                sub="💧"
+              />
+              <MetricItem
+                label={t('uv')}
+                value={dayData.uvMax?.toFixed(0) ?? '—'}
+                sub="☀️"
+              />
+            </div>
+          )}
+
+          {dayData && <HourlyScroll hours={dayData.hours} windUnit={windUnit} />}
+
+          <ForecastList
+            weatherData={data}
+            selectedIndex={dayIndex}
+            onSelect={setDayIndex}
+            t={t}
+          />
+        </>
+      )}
+    </div>
+  );
+}
+
+function MetricItem({ label, value, sub, accent }) {
+  return (
+    <div className="flex-1 bg-[var(--color-surface-2)] rounded-xl p-3">
+      <div className="text-xs text-[var(--color-text-3)] mb-1">{label}</div>
+      <div className={`font-mono text-lg font-medium ${accent ? 'text-[var(--color-city-text)]' : 'text-[var(--color-text)]'}`}>
+        {value}
+      </div>
+      <div className="text-xs text-[var(--color-text-3)] mt-0.5">{sub}</div>
+    </div>
+  );
+}
+
+function SkeletonCity() {
+  return (
+    <div className="px-4 animate-pulse flex flex-col gap-4">
+      <div className="bg-[var(--color-surface-2)] rounded-2xl h-40" />
+      <div className="flex gap-2">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-[var(--color-surface-2)] rounded-full h-8 w-16 flex-shrink-0" />
+        ))}
+      </div>
+      <div className="flex gap-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex-1 bg-[var(--color-surface-2)] rounded-xl h-16" />
+        ))}
+      </div>
+    </div>
+  );
+}

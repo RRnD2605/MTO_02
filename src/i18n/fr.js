@@ -1,0 +1,70 @@
+export default {
+  'nav.cities': 'Villes',
+  'nav.golf': 'Golf',
+  'nav.settings': 'Réglages',
+
+  'score.ideal': 'Conditions idéales',
+  'score.good': 'Bonnes conditions',
+  'score.hard': 'Conditions difficiles',
+  'score.bad': 'Déconseillé',
+
+  'best.window': 'Meilleur créneau',
+  'best.window.subtitle': 'Score moyen sur 3h',
+
+  'alert.storm': 'Risque orage — quittez le parcours avant {time}',
+  'alert.wind': 'Vent fort {speed} km/h — jeu difficile',
+  'alert.frost': 'Risque de gel cette nuit',
+  'alert.uv': 'UV extrême — protection indispensable',
+
+  'model.arome': 'AROME 2.5km',
+  'model.ecmwf': 'ECMWF 9km',
+  'model.label': 'Modèle météo',
+
+  'updated.at': 'Mis à jour à',
+  'refresh': 'Actualiser',
+
+  'add.city': 'Ajouter un lieu',
+  'add.golf': 'Ajouter un parcours',
+  'search.placeholder': 'Rechercher un lieu...',
+  'search.manual': 'Coordonnées manuelles',
+  'search.name': 'Nom du lieu',
+  'search.lat': 'Latitude',
+  'search.lon': 'Longitude',
+  'search.add': 'Ajouter',
+  'search.cancel': 'Annuler',
+  'search.results': 'Résultats',
+  'search.no.results': 'Aucun résultat',
+  'search.searching': 'Recherche...',
+
+  'settings.cities': 'Villes',
+  'settings.golfs': 'Parcours de golf',
+  'settings.wind.unit': 'Unités de vent',
+  'settings.wind.kmh': 'km/h',
+  'settings.wind.knots': 'Nœuds',
+  'settings.lang': 'Langue',
+  'settings.sources': 'Sources météo',
+  'settings.sources.subtitle': 'Modèle utilisé pour chaque lieu',
+
+  'today': "Aujourd'hui",
+  'tomorrow': 'Demain',
+
+  'wind': 'Vent',
+  'rain': 'Pluie',
+  'uv': 'UV',
+  'humidity': 'Humidité',
+  'feels.like': 'Ressenti',
+  'sunrise': 'Lever',
+  'sunset': 'Coucher',
+  'gusts': 'Rafales',
+  'playability': 'Jouabilité',
+
+  'hour': 'h',
+  'loading': 'Chargement...',
+  'error': 'Erreur de chargement',
+  'retry': 'Réessayer',
+  'delete': 'Supprimer',
+  'delete.confirm': 'Impossible de supprimer le dernier élément',
+
+  'knots': 'kt',
+  'kmh': 'km/h',
+};

@@ -1,0 +1,70 @@
+export default {
+  'nav.cities': 'Cities',
+  'nav.golf': 'Golf',
+  'nav.settings': 'Settings',
+
+  'score.ideal': 'Ideal conditions',
+  'score.good': 'Good conditions',
+  'score.hard': 'Difficult conditions',
+  'score.bad': 'Not recommended',
+
+  'best.window': 'Best window',
+  'best.window.subtitle': '3h average score',
+
+  'alert.storm': 'Storm risk — leave the course before {time}',
+  'alert.wind': 'Strong wind {speed} km/h — difficult play',
+  'alert.frost': 'Frost risk tonight',
+  'alert.uv': 'Extreme UV — protection required',
+
+  'model.arome': 'AROME 2.5km',
+  'model.ecmwf': 'ECMWF 9km',
+  'model.label': 'Weather model',
+
+  'updated.at': 'Updated at',
+  'refresh': 'Refresh',
+
+  'add.city': 'Add city',
+  'add.golf': 'Add course',
+  'search.placeholder': 'Search for a location...',
+  'search.manual': 'Manual coordinates',
+  'search.name': 'Location name',
+  'search.lat': 'Latitude',
+  'search.lon': 'Longitude',
+  'search.add': 'Add',
+  'search.cancel': 'Cancel',
+  'search.results': 'Results',
+  'search.no.results': 'No results',
+  'search.searching': 'Searching...',
+
+  'settings.cities': 'Cities',
+  'settings.golfs': 'Golf courses',
+  'settings.wind.unit': 'Wind units',
+  'settings.wind.kmh': 'km/h',
+  'settings.wind.knots': 'Knots',
+  'settings.lang': 'Language',
+  'settings.sources': 'Weather sources',
+  'settings.sources.subtitle': 'Model used for each location',
+
+  'today': 'Today',
+  'tomorrow': 'Tomorrow',
+
+  'wind': 'Wind',
+  'rain': 'Rain',
+  'uv': 'UV',
+  'humidity': 'Humidity',
+  'feels.like': 'Feels like',
+  'sunrise': 'Sunrise',
+  'sunset': 'Sunset',
+  'gusts': 'Gusts',
+  'playability': 'Playability',
+
+  'hour': 'h',
+  'loading': 'Loading...',
+  'error': 'Loading error',
+  'retry': 'Retry',
+  'delete': 'Delete',
+  'delete.confirm': 'Cannot delete the last item',
+
+  'knots': 'kt',
+  'kmh': 'km/h',
+};
