@@ -32,6 +32,16 @@ const save = (key, data) => {
   localStorage.setItem(key, JSON.stringify(data));
 };
 
+function makeMove(list, id, direction) {
+  const idx = list.findIndex((item) => item.id === id);
+  if (idx === -1) return list;
+  const next = [...list];
+  const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= next.length) return list;
+  [next[idx], next[swapIdx]] = [next[swapIdx], next[idx]];
+  return next;
+}
+
 export function useLocations() {
   const [cities, setCitiesState] = useState(() => load(LS_KEYS.cities, DEFAULT_CITIES));
   const [golfs, setGolfsState] = useState(() => load(LS_KEYS.golfs, DEFAULT_GOLFS));
@@ -53,44 +63,34 @@ export function useLocations() {
   }, []);
 
   const addCity = useCallback(
-    (city) => {
-      setCities((prev) => {
-        if (prev.some((c) => c.id === city.id)) return prev;
-        return [...prev, city];
-      });
-    },
+    (city) => setCities((prev) => prev.some((c) => c.id === city.id) ? prev : [...prev, city]),
     [setCities]
   );
 
   const removeCity = useCallback(
-    (id) => {
-      setCities((prev) => {
-        if (prev.length <= 1) return prev;
-        return prev.filter((c) => c.id !== id);
-      });
-    },
+    (id) => setCities((prev) => prev.length <= 1 ? prev : prev.filter((c) => c.id !== id)),
+    [setCities]
+  );
+
+  const moveCity = useCallback(
+    (id, direction) => setCities((prev) => makeMove(prev, id, direction)),
     [setCities]
   );
 
   const addGolf = useCallback(
-    (golf) => {
-      setGolfs((prev) => {
-        if (prev.some((g) => g.id === golf.id)) return prev;
-        return [...prev, golf];
-      });
-    },
+    (golf) => setGolfs((prev) => prev.some((g) => g.id === golf.id) ? prev : [...prev, golf]),
     [setGolfs]
   );
 
   const removeGolf = useCallback(
-    (id) => {
-      setGolfs((prev) => {
-        if (prev.length <= 1) return prev;
-        return prev.filter((g) => g.id !== id);
-      });
-    },
+    (id) => setGolfs((prev) => prev.length <= 1 ? prev : prev.filter((g) => g.id !== id)),
     [setGolfs]
   );
 
-  return { cities, golfs, addCity, removeCity, addGolf, removeGolf };
+  const moveGolf = useCallback(
+    (id, direction) => setGolfs((prev) => makeMove(prev, id, direction)),
+    [setGolfs]
+  );
+
+  return { cities, golfs, addCity, removeCity, moveCity, addGolf, removeGolf, moveGolf };
 }

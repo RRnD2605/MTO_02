@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { searchLocation } from '../../services/geocodingService.js';
+import { searchCity, searchGolfCourse } from '../../services/geocodingService.js';
 
 export default function AddLocationModal({ type, onAdd, onClose, t, existingIds }) {
   const [query, setQuery] = useState('');
@@ -10,24 +10,29 @@ export default function AddLocationModal({ type, onAdd, onClose, t, existingIds 
   const [manualError, setManualError] = useState('');
   const abortRef = useRef(null);
 
-  const doSearch = useCallback(async (q) => {
-    if (abortRef.current) abortRef.current.abort();
-    if (!q || q.length < 2) { setResults([]); return; }
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setSearching(true);
-    try {
-      const res = await searchLocation(q, controller.signal);
-      setResults(res);
-    } catch (e) {
-      if (e.name !== 'AbortError') setResults([]);
-    } finally {
-      if (!controller.signal.aborted) setSearching(false);
-    }
-  }, []);
+  const searchFn = type === 'golf' ? searchGolfCourse : searchCity;
+
+  const doSearch = useCallback(
+    async (q) => {
+      if (abortRef.current) abortRef.current.abort();
+      if (!q || q.length < 2) { setResults([]); return; }
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setSearching(true);
+      try {
+        const res = await searchFn(q, controller.signal);
+        setResults(res);
+      } catch (e) {
+        if (e.name !== 'AbortError') setResults([]);
+      } finally {
+        if (!controller.signal.aborted) setSearching(false);
+      }
+    },
+    [searchFn]
+  );
 
   useEffect(() => {
-    const timer = setTimeout(() => doSearch(query), 350);
+    const timer = setTimeout(() => doSearch(query), 400);
     return () => clearTimeout(timer);
   }, [query, doSearch]);
 
@@ -41,10 +46,9 @@ export default function AddLocationModal({ type, onAdd, onClose, t, existingIds 
     const lat = parseFloat(manual.lat);
     const lon = parseFloat(manual.lon);
     if (!manual.name.trim()) { setManualError('Nom requis'); return; }
-    if (isNaN(lat) || lat < -90 || lat > 90) { setManualError('Latitude invalide'); return; }
-    if (isNaN(lon) || lon < -180 || lon > 180) { setManualError('Longitude invalide'); return; }
+    if (isNaN(lat) || lat < -90 || lat > 90) { setManualError('Latitude invalide (-90 à 90)'); return; }
+    if (isNaN(lon) || lon < -180 || lon > 180) { setManualError('Longitude invalide (-180 à 180)'); return; }
     const id = `manual-${manual.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
-    if (existingIds.includes(id)) { setManualError('Lieu déjà ajouté'); return; }
     onAdd({ id, name: manual.name.trim(), label: manual.name.trim(), lat, lon });
     onClose();
   };
@@ -91,7 +95,7 @@ export default function AddLocationModal({ type, onAdd, onClose, t, existingIds 
                   className="flex flex-col items-start px-3 py-2.5 rounded-lg hover:bg-[var(--color-surface-2)] text-left transition-colors disabled:opacity-40"
                 >
                   <span className="text-sm font-medium text-[var(--color-text)]">{r.name}</span>
-                  <span className="text-xs text-[var(--color-text-3)]">{r.label}</span>
+                  <span className="text-xs text-[var(--color-text-3)] line-clamp-1">{r.label}</span>
                 </button>
               ))}
             </div>

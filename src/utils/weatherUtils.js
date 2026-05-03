@@ -149,12 +149,13 @@ export function parseGolfDayData(weatherData, dayIndex) {
       hour: parseInt(hourly.time[i].slice(11, 13), 10),
       temp: hourly.temperature_2m[i],
       apparentTemp: hourly.apparent_temperature[i],
-      windspeed: hourly.windspeed_10m[i],
-      winddirection: hourly.winddirection_10m[i],
-      windgusts: hourly.windgusts_10m[i],
-      rainProb: hourly.precipitation_probability[i],
-      humidity: hourly.relativehumidity_2m[i],
-      uvIndex: hourly.uv_index[i],
+      windspeed: hourly.windspeed_10m[i] ?? 0,
+      winddirection: hourly.winddirection_10m[i] ?? 0,
+      windgusts: hourly.windgusts_10m[i] ?? (hourly.windspeed_10m[i] ?? 0) * 1.3,
+      rainProb: hourly.precipitation_probability[i] ?? 0,
+      humidity: hourly.relativehumidity_2m[i] ?? 0,
+      uvIndex: hourly.uv_index[i] ?? 0,
+      weathercode: hourly.weathercode?.[i] ?? 0,
     }));
 
   return {

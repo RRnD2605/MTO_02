@@ -1,24 +1,29 @@
 import { useRef, useEffect } from 'react';
-import { getWeatherIcon, formatWind } from '../../utils/weatherUtils.js';
+import { getWeatherIcon } from '../../utils/weatherUtils.js';
 
-export default function HourlyScroll({ hours, windUnit }) {
+export default function HourlyScroll({ hours, isToday }) {
   const now = new Date();
   const currentHour = now.getHours();
   const activeRef = useRef(null);
+
+  // For today: filter from currentHour-1; for other days: show all
+  const visibleHours = isToday
+    ? hours.filter((h) => h.hour >= Math.max(0, currentHour - 1))
+    : hours;
 
   useEffect(() => {
     if (activeRef.current) {
       activeRef.current.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
     }
-  }, [hours]);
+  }, [visibleHours]);
 
-  if (!hours || hours.length === 0) return null;
+  if (!visibleHours || visibleHours.length === 0) return null;
 
   return (
-    <div className="px-4">
+    <div className="px-4 overflow-hidden">
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {hours.map((h) => {
-          const isNow = h.hour === currentHour;
+        {visibleHours.map((h) => {
+          const isNow = isToday && h.hour === currentHour;
           return (
             <div
               key={h.time}
@@ -35,7 +40,7 @@ export default function HourlyScroll({ hours, windUnit }) {
                 {Math.round(h.temp)}°
               </span>
               <span className="text-xs text-[var(--color-text-3)] font-mono">
-                {h.rainProb}%
+                {h.rainProb ?? 0}%
               </span>
             </div>
           );

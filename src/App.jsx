@@ -16,7 +16,11 @@ function getInitialWindUnit() {
 export default function App() {
   const [tab, setTab] = useState('cities');
   const { lang, setLang, t } = useI18n();
-  const { cities, golfs, addCity, removeCity, addGolf, removeGolf } = useLocations();
+  const {
+    cities, golfs,
+    addCity, removeCity, moveCity,
+    addGolf, removeGolf, moveGolf,
+  } = useLocations();
   const [windUnit, setWindUnitState] = useState(getInitialWindUnit);
 
   const updateRef = useRef({ updatedAt: null, refresh: null });
@@ -29,7 +33,7 @@ export default function App() {
 
   const handleUpdateTimestamp = useCallback((ts, refreshFn) => {
     updateRef.current = { updatedAt: ts, refresh: refreshFn };
-    setUpdatedAt(ts);
+    setUpdatedAt((prev) => (prev === ts ? prev : ts));
   }, []);
 
   const handleRefresh = useCallback(() => {
@@ -37,10 +41,13 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] font-sans">
+    <div
+      className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] font-sans"
+      style={{ maxWidth: '100vw', overflowX: 'hidden' }}
+    >
       <NavBar activeTab={tab} onTab={setTab} t={t} />
 
-      <main className="max-w-lg mx-auto">
+      <main className="max-w-lg mx-auto" style={{ overflowX: 'hidden' }}>
         {tab === 'cities' && (
           <CityView
             cities={cities}
@@ -65,8 +72,10 @@ export default function App() {
             golfs={golfs}
             addCity={addCity}
             removeCity={removeCity}
+            moveCity={moveCity}
             addGolf={addGolf}
             removeGolf={removeGolf}
+            moveGolf={moveGolf}
             lang={lang}
             setLang={setLang}
             windUnit={windUnit}

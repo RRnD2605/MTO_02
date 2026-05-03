@@ -104,6 +104,7 @@ export async function fetchGolfWeather(lat, lon, signal) {
       'precipitation_probability',
       'relativehumidity_2m',
       'uv_index',
+      'weathercode',
     ].join(','),
     current_weather: true,
     forecast_days: 4,

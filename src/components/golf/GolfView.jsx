@@ -1,13 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LocationTabs from '../shared/LocationTabs.jsx';
 import GolfHeroCard from './GolfHeroCard.jsx';
-import BestWindowBanner from './BestWindowBanner.jsx';
+import TeeTimeSelector from './TeeTimeSelector.jsx';
 import AlertBanner from './AlertBanner.jsx';
 import MetricsGrid from './MetricsGrid.jsx';
 import HoursTable from './HoursTable.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { parseGolfDayData, generateAlerts } from '../../utils/weatherUtils.js';
-import { findBestWindow } from '../../utils/golfScore.js';
 
 export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }) {
   const [activeId, setActiveId] = useState(golfs[0]?.id);
@@ -15,16 +14,17 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
   const activeGolf = golfs.find((g) => g.id === activeId) || golfs[0];
   const { data, loading, error, updatedAt, refresh } = useWeather(activeGolf, 'golf');
 
-  if (updatedAt && typeof onUpdateTimestamp === 'function') {
-    onUpdateTimestamp(updatedAt, refresh);
-  }
+  useEffect(() => {
+    if (updatedAt && typeof onUpdateTimestamp === 'function') {
+      onUpdateTimestamp(updatedAt, refresh);
+    }
+  }, [updatedAt, refresh, onUpdateTimestamp]);
 
   const dayData = parseGolfDayData(data, 0);
   const alerts = dayData && data ? generateAlerts(data.daily, 0, lang) : [];
-  const bestWindow = dayData?.hours ? findBestWindow(dayData.hours) : null;
 
   return (
-    <div className="flex flex-col gap-4 pb-20">
+    <div className="flex flex-col gap-4 pb-20 overflow-hidden">
       <div className="pt-3">
         <LocationTabs
           locations={golfs}
@@ -52,8 +52,8 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
 
       {data && (
         <>
-          <GolfHeroCard dayData={dayData} lang={lang} t={t} />
-          <BestWindowBanner window={bestWindow} t={t} />
+          <GolfHeroCard dayData={dayData} lang={lang} windUnit={windUnit} t={t} />
+          <TeeTimeSelector dayData={dayData} windUnit={windUnit} t={t} />
           <AlertBanner alerts={alerts} t={t} />
           <MetricsGrid dayData={dayData} windUnit={windUnit} t={t} />
           <HoursTable hours={dayData?.hours} windUnit={windUnit} t={t} />
@@ -67,7 +67,7 @@ function SkeletonGolf() {
   return (
     <div className="mx-4 animate-pulse flex flex-col gap-4">
       <div className="bg-[var(--color-surface-2)] rounded-2xl h-48" />
-      <div className="bg-[var(--color-surface-2)] rounded-xl h-16" />
+      <div className="bg-[var(--color-surface-2)] rounded-xl h-24" />
       <div className="grid grid-cols-2 gap-3">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="bg-[var(--color-surface-2)] rounded-xl h-16" />

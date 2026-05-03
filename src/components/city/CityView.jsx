@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LocationTabs from '../shared/LocationTabs.jsx';
 import CityHeroCard from './CityHeroCard.jsx';
 import DaySelector from './DaySelector.jsx';
@@ -14,15 +14,17 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
   const activeCity = cities.find((c) => c.id === activeId) || cities[0];
   const { data, loading, error, updatedAt, refresh } = useWeather(activeCity, 'city');
 
-  if (updatedAt && typeof onUpdateTimestamp === 'function') {
-    onUpdateTimestamp(updatedAt, refresh);
-  }
+  useEffect(() => {
+    if (updatedAt && typeof onUpdateTimestamp === 'function') {
+      onUpdateTimestamp(updatedAt, refresh);
+    }
+  }, [updatedAt, refresh, onUpdateTimestamp]);
 
   const dayData = parseDayData(data, dayIndex);
   const alerts = dayData && data ? generateAlerts(data.daily, dayIndex, lang) : [];
 
   return (
-    <div className="flex flex-col gap-4 pb-20">
+    <div className="flex flex-col gap-4 pb-20 overflow-hidden">
       <div className="pt-3">
         <LocationTabs
           locations={cities}
@@ -74,27 +76,27 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
           />
 
           {dayData && (
-            <div className="flex gap-6 px-4">
+            <div className="flex gap-3 px-4">
               <MetricItem
                 label={t('wind')}
-                value={formatWind(dayData.windspeed, windUnit)}
-                sub={windDirection(dayData.winddirection)}
+                value={formatWind(dayData.windspeed ?? 0, windUnit)}
+                sub={windDirection(dayData.winddirection ?? 0)}
                 accent
               />
               <MetricItem
                 label={t('rain')}
-                value={`${dayData.rainProb}%`}
+                value={`${dayData.rainProb ?? 0}%`}
                 sub="💧"
               />
               <MetricItem
                 label={t('uv')}
-                value={dayData.uvMax?.toFixed(0) ?? '—'}
+                value={dayData.uvMax != null ? Math.round(dayData.uvMax).toString() : '0'}
                 sub="☀️"
               />
             </div>
           )}
 
-          {dayData && <HourlyScroll hours={dayData.hours} windUnit={windUnit} />}
+          {dayData && <HourlyScroll hours={dayData.hours} isToday={dayIndex === 0} />}
 
           <ForecastList
             weatherData={data}

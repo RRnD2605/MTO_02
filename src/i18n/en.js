@@ -67,4 +67,10 @@ export default {
 
   'knots': 'kt',
   'kmh': 'km/h',
+
+  'tee.time.title': 'Optimal tee time',
+  'tee.9holes': '9 holes · 2h30',
+  'tee.18holes': '18 holes · 5h',
+  'tee.sunset': 'Sunset',
+  'tee.no.slot': 'No slot available today',
 };

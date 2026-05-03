@@ -5,7 +5,8 @@ import { getModelName } from '../../services/weatherService.js';
 
 export default function SettingsView({
   cities, golfs,
-  addCity, removeCity, addGolf, removeGolf,
+  addCity, removeCity, moveCity,
+  addGolf, removeGolf, moveGolf,
   lang, setLang,
   windUnit, setWindUnit,
   t,
@@ -13,14 +14,14 @@ export default function SettingsView({
   const [modal, setModal] = useState(null);
 
   return (
-    <div className="flex flex-col gap-6 p-4 pb-24">
+    <div className="flex flex-col gap-6 p-4 pb-24 overflow-hidden">
       <Section title={t('settings.cities')}>
-        <LocationList items={cities} onRemove={removeCity} showModel t={t} />
+        <LocationList items={cities} onRemove={removeCity} onMove={moveCity} showModel t={t} />
         <AddButton onClick={() => setModal('city')} label={t('add.city')} color="city" />
       </Section>
 
       <Section title={t('settings.golfs')}>
-        <LocationList items={golfs} onRemove={removeGolf} showModel t={t} />
+        <LocationList items={golfs} onRemove={removeGolf} onMove={moveGolf} showModel t={t} />
         <AddButton onClick={() => setModal('golf')} label={t('add.golf')} color="golf" />
       </Section>
 
@@ -63,10 +64,16 @@ export default function SettingsView({
       <Section title={t('settings.sources')}>
         <p className="text-xs text-[var(--color-text-3)] mb-2">{t('settings.sources.subtitle')}</p>
         <div className="flex flex-col rounded-xl overflow-hidden border border-[var(--color-border)]">
-          {[...cities.map(l => ({ ...l, type: 'city' })), ...golfs.map(l => ({ ...l, type: 'golf' }))].map((loc) => (
-            <div key={`${loc.type}-${loc.id}`} className="flex items-center justify-between px-4 py-2.5 bg-[var(--color-surface)] border-b last:border-b-0 border-[var(--color-border)]">
-              <span className="text-sm text-[var(--color-text)]">{loc.name}</span>
-              <span className="text-xs font-mono text-[var(--color-text-3)] bg-[var(--color-surface-2)] px-2 py-0.5 rounded-full">
+          {[
+            ...cities.map((l) => ({ ...l, type: 'city' })),
+            ...golfs.map((l) => ({ ...l, type: 'golf' })),
+          ].map((loc) => (
+            <div
+              key={`${loc.type}-${loc.id}`}
+              className="flex items-center justify-between px-4 py-2.5 bg-[var(--color-surface)] border-b last:border-b-0 border-[var(--color-border)]"
+            >
+              <span className="text-sm text-[var(--color-text)] truncate mr-2">{loc.name}</span>
+              <span className="text-xs font-mono text-[var(--color-text-3)] bg-[var(--color-surface-2)] px-2 py-0.5 rounded-full flex-shrink-0">
                 {t(getModelName(loc.lat, loc.lon))}
               </span>
             </div>

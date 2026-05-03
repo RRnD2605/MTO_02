@@ -2,20 +2,34 @@ import { getWeatherIcon, getWeatherLabel } from '../../utils/weatherUtils.js';
 import { computeGolfScore } from '../../utils/golfScore.js';
 import GolfScoreBadge from './GolfScoreBadge.jsx';
 
-export default function GolfHeroCard({ dayData, lang, t }) {
+export default function GolfHeroCard({ dayData, lang, windUnit, t }) {
   if (!dayData) return null;
-  const { maxTemp, minTemp, weathercode, currentTemp, windspeed, uvMax, rainProb } = dayData;
+  const { maxTemp, minTemp, weathercode, currentTemp } = dayData;
 
-  const repHour = dayData.hours?.find((h) => h.hour === 10) || dayData.hours?.[0];
-  const scoreResult = repHour
-    ? computeGolfScore({
-        windspeed: repHour.windspeed,
-        windgusts: repHour.windgusts,
-        rainProb: repHour.rainProb,
-        uvIndex: repHour.uvIndex,
-      })
-    : computeGolfScore({ windspeed, windgusts: windspeed * 1.3, rainProb, uvIndex: uvMax });
+  const now = new Date();
+  const currentHour = now.getHours();
 
+  // Use current hour for today's real-time score; fall back to 10h or first available
+  const currentHourData =
+    dayData.hours?.find((h) => h.hour === currentHour) ||
+    dayData.hours?.find((h) => h.hour === 10) ||
+    dayData.hours?.[0];
+
+  const scoreInputs = currentHourData
+    ? {
+        windspeed: currentHourData.windspeed,
+        windgusts: currentHourData.windgusts,
+        rainProb: currentHourData.rainProb,
+        uvIndex: currentHourData.uvIndex,
+      }
+    : {
+        windspeed: dayData.windspeed ?? 0,
+        windgusts: (dayData.windspeed ?? 0) * 1.3,
+        rainProb: dayData.rainProb ?? 0,
+        uvIndex: dayData.uvMax ?? 0,
+      };
+
+  const scoreResult = computeGolfScore(scoreInputs);
   const displayTemp = currentTemp ?? maxTemp;
   const icon = getWeatherIcon(weathercode);
   const label = getWeatherLabel(weathercode, lang);
@@ -46,6 +60,8 @@ export default function GolfHeroCard({ dayData, lang, t }) {
         level={scoreResult.level}
         icon={scoreResult.icon}
         labelKey={scoreResult.labelKey}
+        scoreInputs={scoreInputs}
+        windUnit={windUnit}
         t={t}
       />
     </div>

@@ -67,4 +67,10 @@ export default {
 
   'knots': 'kt',
   'kmh': 'km/h',
+
+  'tee.time.title': 'Heure de départ optimale',
+  'tee.9holes': '9 trous · 2h30',
+  'tee.18holes': '18 trous · 5h',
+  'tee.sunset': 'Coucher du soleil',
+  'tee.no.slot': "Pas de créneau disponible aujourd'hui",
 };
