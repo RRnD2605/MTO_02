@@ -5,7 +5,7 @@ import DaySelector from './DaySelector.jsx';
 import HourlyScroll from './HourlyScroll.jsx';
 import ForecastList from './ForecastList.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
-import { parseDayData, formatWind, windDirection, generateAlerts } from '../../utils/weatherUtils.js';
+import { parseDayData, formatWind, windDirection } from '../../utils/weatherUtils.js';
 
 export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp }) {
   const [activeId, setActiveId] = useState(cities[0]?.id);
@@ -21,10 +21,6 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
   }, [updatedAt, refresh, onUpdateTimestamp]);
 
   const dayData = useMemo(() => parseDayData(data, dayIndex), [data, dayIndex]);
-  const alerts = useMemo(
-    () => (dayData && data ? generateAlerts(data.daily, dayIndex, lang) : []),
-    [dayData, data, dayIndex, lang]
-  );
 
   return (
     <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
@@ -55,20 +51,6 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
 
       {data && (
         <>
-          {alerts.length > 0 && (
-            <div className="px-4 flex flex-col gap-2">
-              {alerts.map((a, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-alert-bg)] text-[var(--color-alert-text)] text-sm"
-                >
-                  <span>{a.icon}</span>
-                  <span>{t(a.key, a.vars)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
           <CityHeroCard dayData={dayData} lang={lang} t={t} />
 
           <DaySelector

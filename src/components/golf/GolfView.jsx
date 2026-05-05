@@ -52,9 +52,9 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
 
       {data && (
         <>
+          <AlertBanner alerts={alerts} t={t} />
           <GolfHeroCard dayData={dayData} lang={lang} windUnit={windUnit} t={t} />
           <TeeTimeSelector dayData={dayData} windUnit={windUnit} t={t} />
-          <AlertBanner alerts={alerts} t={t} />
           <MetricsGrid dayData={dayData} windUnit={windUnit} t={t} />
           <HoursTable hours={dayData?.hours} windUnit={windUnit} t={t} />
         </>
