@@ -14,7 +14,7 @@ export default function SettingsView({
   const [modal, setModal] = useState(null);
 
   return (
-    <div className="flex flex-col gap-6 p-4 pb-24 overflow-hidden">
+    <div className="flex flex-col gap-6 p-4 pb-24 overflow-hidden bg-[var(--color-bg)]">
       <Section title={t('settings.cities')}>
         <LocationList items={cities} onRemove={removeCity} onMove={moveCity} showModel t={t} />
         <AddButton onClick={() => setModal('city')} label={t('add.city')} color="city" />

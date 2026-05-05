@@ -27,7 +27,7 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
   );
 
   return (
-    <div className="flex flex-col gap-4 pb-20 overflow-hidden">
+    <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
       <div className="pt-3">
         <LocationTabs
           locations={cities}

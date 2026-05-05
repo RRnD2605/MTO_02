@@ -9,7 +9,7 @@ export default function HoursTable({ hours, windUnit, t }) {
   const golfHours = hours.filter((h) => h.hour >= 7 && h.hour <= 19);
 
   return (
-    <div className="mx-4 mb-4 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] overflow-hidden">
+    <div className="mx-4 mb-4 rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] overflow-hidden">
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-[var(--color-border)]">

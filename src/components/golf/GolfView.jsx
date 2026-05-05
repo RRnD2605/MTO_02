@@ -24,7 +24,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
   const alerts = dayData && data ? generateAlerts(data.daily, 0, lang) : [];
 
   return (
-    <div className="flex flex-col gap-4 pb-20 overflow-hidden">
+    <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
       <div className="pt-3">
         <LocationTabs
           locations={golfs}
