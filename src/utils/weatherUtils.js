@@ -1,46 +1,58 @@
-export const WMO_ICONS = {
-  0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
-  45: '🌫️', 48: '🌫️',
-  51: '🌦️', 53: '🌦️', 55: '🌦️',
-  61: '🌧️', 63: '🌧️', 65: '🌧️',
-  71: '🌨️', 73: '🌨️', 75: '🌨️',
-  77: '🌨️',
-  80: '🌦️', 81: '🌦️', 82: '🌧️',
-  85: '🌨️', 86: '🌨️',
-  95: '⛈️', 96: '⛈️', 99: '⛈️',
-};
-
-export const WMO_LABELS_FR = {
-  0: 'Ciel dégagé', 1: 'Peu nuageux', 2: 'Partiellement nuageux', 3: 'Couvert',
-  45: 'Brouillard', 48: 'Brouillard givrant',
-  51: 'Bruine légère', 53: 'Bruine modérée', 55: 'Bruine dense',
-  61: 'Pluie légère', 63: 'Pluie modérée', 65: 'Pluie forte',
-  71: 'Neige légère', 73: 'Neige modérée', 75: 'Neige forte',
-  77: 'Grains de neige',
-  80: 'Averses légères', 81: 'Averses modérées', 82: 'Averses violentes',
-  85: 'Averses de neige légères', 86: 'Averses de neige fortes',
-  95: 'Orage', 96: 'Orage avec grêle légère', 99: 'Orage avec grêle forte',
-};
-
-export const WMO_LABELS_EN = {
-  0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-  45: 'Fog', 48: 'Freezing fog',
-  51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
-  61: 'Light rain', 63: 'Moderate rain', 65: 'Heavy rain',
-  71: 'Light snow', 73: 'Moderate snow', 75: 'Heavy snow',
-  77: 'Snow grains',
-  80: 'Light showers', 81: 'Moderate showers', 82: 'Violent showers',
-  85: 'Light snow showers', 86: 'Heavy snow showers',
-  95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Thunderstorm with heavy hail',
-};
-
-export function getWeatherIcon(code) {
-  return WMO_ICONS[code] ?? '🌡️';
+export function wmoIcon(code) {
+  if (code === 0)    return '☀️';
+  if (code === 1)    return '🌤️';
+  if (code === 2)    return '⛅';
+  if (code === 3)    return '☁️';
+  if (code <= 49)    return '🌫️';
+  if (code <= 55)    return '🌦️';
+  if (code <= 65)    return '🌧️';
+  if (code <= 77)    return '❄️';
+  if (code <= 82)    return '🌧️';
+  if (code <= 86)    return '🌨️';
+  if (code === 95)   return '⛈️';
+  if (code >= 96)    return '⛈️';
+  return '🌡️';
 }
 
+export function wmoLabel(code, lang = 'fr') {
+  if (lang === 'en') {
+    if (code === 0)   return 'Sunny';
+    if (code === 1)   return 'Mainly clear';
+    if (code === 2)   return 'Partly cloudy';
+    if (code === 3)   return 'Overcast';
+    if (code <= 49)   return 'Fog';
+    if (code <= 55)   return 'Drizzle';
+    if (code === 61)  return 'Light rain';
+    if (code === 63)  return 'Moderate rain';
+    if (code === 65)  return 'Heavy rain';
+    if (code <= 77)   return 'Snow';
+    if (code <= 82)   return 'Showers';
+    if (code <= 86)   return 'Snow showers';
+    if (code === 95)  return 'Thunderstorm';
+    if (code >= 96)   return 'Thunderstorm with hail';
+    return 'Unknown';
+  }
+  if (code === 0)   return 'Ensoleillé';
+  if (code === 1)   return 'Peu nuageux';
+  if (code === 2)   return 'Partiellement nuageux';
+  if (code === 3)   return 'Couvert';
+  if (code <= 49)   return 'Brouillard';
+  if (code <= 55)   return 'Bruine';
+  if (code === 61)  return 'Pluie légère';
+  if (code === 63)  return 'Pluie modérée';
+  if (code === 65)  return 'Pluie forte';
+  if (code <= 77)   return 'Neige';
+  if (code <= 82)   return 'Averses';
+  if (code <= 86)   return 'Averses de neige';
+  if (code === 95)  return 'Orage';
+  if (code >= 96)   return 'Orage avec grêle';
+  return 'Inconnu';
+}
+
+// Aliases conservés pour compatibilité avec les composants existants
+export const getWeatherIcon = wmoIcon;
 export function getWeatherLabel(code, lang = 'fr') {
-  const labels = lang === 'fr' ? WMO_LABELS_FR : WMO_LABELS_EN;
-  return labels[code] ?? code;
+  return wmoLabel(code, lang);
 }
 
 export function windDirection(deg) {
