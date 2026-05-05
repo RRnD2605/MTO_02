@@ -51,7 +51,9 @@ export function findBestTeeTime(hours, sunsetIso, roundType) {
   const durationH = roundType === '9' ? 2.5 : 5;
   const deadlineHour = parseSunsetHour(sunsetIso) - 0.5;
 
-  const golfHours = hours.filter((h) => h.hour >= 6 && h.hour <= 19);
+  // Départ minimum 7h30 — données à granularité 1h → première heure valide = 8h
+  const MIN_TEE_HOUR = 8;
+  const golfHours = hours.filter((h) => h.hour >= MIN_TEE_HOUR && h.hour <= 19);
   if (golfHours.length === 0) return null;
 
   let bestStart = null;
