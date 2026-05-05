@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import LocationTabs from '../shared/LocationTabs.jsx';
 import CityHeroCard from './CityHeroCard.jsx';
 import DaySelector from './DaySelector.jsx';
@@ -20,8 +20,11 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
     }
   }, [updatedAt, refresh, onUpdateTimestamp]);
 
-  const dayData = parseDayData(data, dayIndex);
-  const alerts = dayData && data ? generateAlerts(data.daily, dayIndex, lang) : [];
+  const dayData = useMemo(() => parseDayData(data, dayIndex), [data, dayIndex]);
+  const alerts = useMemo(
+    () => (dayData && data ? generateAlerts(data.daily, dayIndex, lang) : []),
+    [dayData, data, dayIndex, lang]
+  );
 
   return (
     <div className="flex flex-col gap-4 pb-20 overflow-hidden">

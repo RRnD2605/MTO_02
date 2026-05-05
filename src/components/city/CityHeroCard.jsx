@@ -3,7 +3,8 @@ import { getWeatherIcon, getWeatherLabel } from '../../utils/weatherUtils.js';
 export default function CityHeroCard({ dayData, lang, t }) {
   if (!dayData) return null;
   const { maxTemp, minTemp, weathercode, currentTemp } = dayData;
-  const displayTemp = currentTemp ?? maxTemp;
+  // Pour j0 : température en temps réel. Pour j>0 : tempMax (pas de "current" disponible)
+  const displayTemp = currentTemp != null ? currentTemp : maxTemp;
   const icon = getWeatherIcon(weathercode);
   const label = getWeatherLabel(weathercode, lang);
 

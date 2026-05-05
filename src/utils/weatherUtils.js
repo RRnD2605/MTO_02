@@ -118,7 +118,8 @@ export function generateAlerts(daily, dayIndex, lang) {
 export function parseDayData(weatherData, dayIndex) {
   if (!weatherData) return null;
   const { daily, hourly, current_weather } = weatherData;
-  const date = daily.time[dayIndex];
+  const date = daily.time?.[dayIndex];
+  if (!date) return null;
 
   const dayHours = hourly.time
     .map((t, i) => ({ t, i }))
@@ -126,25 +127,25 @@ export function parseDayData(weatherData, dayIndex) {
     .map(({ i }) => ({
       time: hourly.time[i],
       hour: parseInt(hourly.time[i].slice(11, 13), 10),
-      temp: hourly.temperature_2m[i],
-      weathercode: hourly.weathercode[i],
-      windspeed: hourly.windspeed_10m[i],
-      winddirection: hourly.winddirection_10m[i],
-      rainProb: hourly.precipitation_probability[i],
+      temp: hourly.temperature_2m[i] ?? 0,
+      weathercode: hourly.weathercode[i] ?? 0,
+      windspeed: hourly.windspeed_10m[i] ?? 0,
+      winddirection: hourly.winddirection_10m[i] ?? 0,
+      rainProb: hourly.precipitation_probability[i] ?? 0,
     }));
 
   return {
     date,
-    maxTemp: daily.temperature_2m_max[dayIndex],
-    minTemp: daily.temperature_2m_min[dayIndex],
-    weathercode: daily.weathercode[dayIndex],
-    rainProb: daily.precipitation_probability_max[dayIndex],
-    windspeed: daily.windspeed_10m_max[dayIndex],
-    winddirection: daily.winddirection_10m_dominant[dayIndex],
-    uvMax: daily.uv_index_max[dayIndex],
+    maxTemp: daily.temperature_2m_max[dayIndex] ?? 0,
+    minTemp: daily.temperature_2m_min[dayIndex] ?? 0,
+    weathercode: daily.weathercode[dayIndex] ?? 0,
+    rainProb: daily.precipitation_probability_max?.[dayIndex] ?? 0,
+    windspeed: daily.windspeed_10m_max[dayIndex] ?? 0,
+    winddirection: daily.winddirection_10m_dominant[dayIndex] ?? 0,
+    uvMax: daily.uv_index_max?.[dayIndex] ?? 0,
     hours: dayHours,
-    currentTemp: dayIndex === 0 ? current_weather?.temperature : null,
-    currentWeathercode: dayIndex === 0 ? current_weather?.weathercode : null,
+    // currentTemp uniquement pour aujourd'hui (j0)
+    currentTemp: dayIndex === 0 ? (current_weather?.temperature ?? null) : null,
   };
 }
 
