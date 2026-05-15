@@ -1,4 +1,101 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="32" fill="#1B4D3E"/>
-  <text x="96" y="130" font-size="100" text-anchor="middle" font-family="sans-serif">⛳</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%" stop-color="#1A4B9C"/>
+      <stop offset="100%" stop-color="#2E9BE8"/>
+    </linearGradient>
+    <radialGradient id="ballGrad" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#E8E8E8"/>
+      <stop offset="100%" stop-color="#CCCCCC"/>
+    </radialGradient>
+    <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD340"/>
+      <stop offset="100%" stop-color="#F0A000"/>
+    </radialGradient>
+    <linearGradient id="cloudGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8EFF8"/>
+    </linearGradient>
+    <filter id="ballShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="1.5" dy="2" stdDeviation="3" flood-color="#00000033"/>
+    </filter>
+    <filter id="cloudShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="1" dy="1.5" stdDeviation="2" flood-color="#00000022"/>
+    </filter>
+    <clipPath id="roundedRect">
+      <rect width="192" height="192" rx="41" ry="41"/>
+    </clipPath>
+  </defs>
+
+  <rect width="192" height="192" rx="41" ry="41" fill="url(#bg)"/>
+
+  <g clip-path="url(#roundedRect)">
+    <!-- SOLEIL -->
+    <circle cx="124" cy="73" r="43" fill="url(#sunGrad)"/>
+
+    <g fill="#F5B800">
+      <polygon points="124,19 120,43 128,43"/>
+      <polygon points="159,38 143,55 149,61"/>
+      <polygon points="178,73 154,69 154,78"/>
+      <polygon points="159,108 149,91 143,96"/>
+      <polygon points="124,127 128,103 120,103"/>
+      <polygon points="89,38 100,55 94,61"/>
+      <polygon points="70,73 94,78 94,69"/>
+      <polygon points="89,108 94,91 100,96"/>
+    </g>
+
+    <!-- BALLE DE GOLF -->
+    <circle cx="82" cy="90" r="56" fill="url(#ballGrad)" filter="url(#ballShadow)"/>
+
+    <g fill="#D0D0D0" opacity="0.6">
+      <circle cx="71" cy="54" r="3.4"/>
+      <circle cx="82" cy="52" r="3.4"/>
+      <circle cx="94" cy="54" r="3.4"/>
+      <circle cx="103" cy="59" r="3"/>
+      <circle cx="62" cy="64" r="3.4"/>
+      <circle cx="73" cy="61" r="3.4"/>
+      <circle cx="84" cy="61" r="3.4"/>
+      <circle cx="95" cy="63" r="3.4"/>
+      <circle cx="105" cy="68" r="3"/>
+      <circle cx="56" cy="74" r="3.4"/>
+      <circle cx="67" cy="72" r="3.4"/>
+      <circle cx="78" cy="71" r="3.4"/>
+      <circle cx="89" cy="72" r="3.4"/>
+      <circle cx="100" cy="75" r="3.4"/>
+      <circle cx="109" cy="81" r="3"/>
+      <circle cx="54" cy="85" r="3.4"/>
+      <circle cx="65" cy="83" r="3.4"/>
+      <circle cx="76" cy="82" r="3.4"/>
+      <circle cx="87" cy="83" r="3.4"/>
+      <circle cx="98" cy="86" r="3.4"/>
+      <circle cx="107" cy="92" r="3"/>
+      <circle cx="56" cy="97" r="3.4"/>
+      <circle cx="66" cy="95" r="3.4"/>
+      <circle cx="77" cy="94" r="3.4"/>
+      <circle cx="88" cy="95" r="3.4"/>
+      <circle cx="99" cy="98" r="3.4"/>
+      <circle cx="59" cy="108" r="3.4"/>
+      <circle cx="70" cy="106" r="3.4"/>
+      <circle cx="81" cy="106" r="3.4"/>
+      <circle cx="92" cy="108" r="3.4"/>
+      <circle cx="101" cy="112" r="3"/>
+      <circle cx="66" cy="118" r="3"/>
+      <circle cx="76" cy="117" r="3.4"/>
+      <circle cx="87" cy="118" r="3.4"/>
+      <circle cx="97" cy="122" r="3"/>
+      <circle cx="73" cy="128" r="3"/>
+      <circle cx="83" cy="128" r="3"/>
+      <circle cx="93" cy="131" r="2.5"/>
+    </g>
+
+    <!-- NUAGE -->
+    <g filter="url(#cloudShadow)">
+      <ellipse cx="49" cy="139" rx="34" ry="24" fill="url(#cloudGrad)"/>
+      <ellipse cx="79" cy="148" rx="38" ry="22" fill="url(#cloudGrad)"/>
+      <ellipse cx="113" cy="150" rx="30" ry="19" fill="url(#cloudGrad)"/>
+      <ellipse cx="66" cy="157" rx="54" ry="22" fill="url(#cloudGrad)"/>
+      <rect x="21" y="156" width="116" height="21" fill="#EEF5FF" rx="4"/>
+    </g>
+  </g>
 </svg>

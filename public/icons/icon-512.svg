@@ -1,4 +1,136 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="80" fill="#1B4D3E"/>
-  <text x="256" y="340" font-size="280" text-anchor="middle" font-family="sans-serif">⛳</text>
+  <defs>
+    <!-- Fond dégradé bleu -->
+    <linearGradient id="bg" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%" stop-color="#1A4B9C"/>
+      <stop offset="100%" stop-color="#2E9BE8"/>
+    </linearGradient>
+    <!-- Dégradé balle de golf -->
+    <radialGradient id="ballGrad" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#E8E8E8"/>
+      <stop offset="100%" stop-color="#CCCCCC"/>
+    </radialGradient>
+    <!-- Dégradé soleil -->
+    <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFD340"/>
+      <stop offset="100%" stop-color="#F0A000"/>
+    </radialGradient>
+    <!-- Dégradé nuage -->
+    <linearGradient id="cloudGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E8EFF8"/>
+    </linearGradient>
+    <!-- Ombre douce balle -->
+    <filter id="ballShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-color="#00000033"/>
+    </filter>
+    <!-- Ombre nuage -->
+    <filter id="cloudShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="2" dy="4" stdDeviation="6" flood-color="#00000022"/>
+    </filter>
+    <!-- Clip pour les coins arrondis -->
+    <clipPath id="roundedRect">
+      <rect width="512" height="512" rx="110" ry="110"/>
+    </clipPath>
+  </defs>
+
+  <!-- Fond arrondi -->
+  <rect width="512" height="512" rx="110" ry="110" fill="url(#bg)"/>
+
+  <g clip-path="url(#roundedRect)">
+    <!-- ===== SOLEIL ===== -->
+    <!-- Corps du soleil (cercle orange/jaune) -->
+    <circle cx="330" cy="195" r="115" fill="url(#sunGrad)"/>
+
+    <!-- Rayons triangulaires du soleil -->
+    <g fill="#F5B800">
+      <!-- Rayon haut -->
+      <polygon points="330,50 320,115 340,115"/>
+      <!-- Rayon haut-droite 45° -->
+      <polygon points="424,101 381,148 397,162"/>
+      <!-- Rayon droite -->
+      <polygon points="475,195 410,183 410,207"/>
+      <!-- Rayon bas-droite -->
+      <polygon points="424,289 397,242 381,256"/>
+      <!-- Rayon bas -->
+      <polygon points="330,340 340,275 320,275"/>
+      <!-- Rayon haut-gauche 45° -->
+      <polygon points="236,101 267,148 253,162"/>
+      <!-- Rayon gauche -->
+      <polygon points="185,195 250,207 250,183"/>
+      <!-- Rayon bas-gauche -->
+      <polygon points="236,289 253,242 267,256"/>
+    </g>
+
+    <!-- ===== BALLE DE GOLF ===== -->
+    <circle cx="220" cy="240" r="150" fill="url(#ballGrad)" filter="url(#ballShadow)"/>
+
+    <!-- Alvéoles de la balle (dimples) -->
+    <g fill="#D0D0D0" opacity="0.6">
+      <!-- rangée 1 -->
+      <circle cx="190" cy="145" r="9"/>
+      <circle cx="220" cy="138" r="9"/>
+      <circle cx="250" cy="145" r="9"/>
+      <circle cx="275" cy="158" r="8"/>
+
+      <!-- rangée 2 -->
+      <circle cx="165" cy="170" r="9"/>
+      <circle cx="195" cy="163" r="9"/>
+      <circle cx="225" cy="162" r="9"/>
+      <circle cx="255" cy="168" r="9"/>
+      <circle cx="280" cy="182" r="8"/>
+
+      <!-- rangée 3 -->
+      <circle cx="150" cy="198" r="9"/>
+      <circle cx="178" cy="192" r="9"/>
+      <circle cx="208" cy="190" r="9"/>
+      <circle cx="238" cy="192" r="9"/>
+      <circle cx="266" cy="200" r="9"/>
+      <circle cx="290" cy="215" r="8"/>
+
+      <!-- rangée 4 -->
+      <circle cx="145" cy="228" r="9"/>
+      <circle cx="173" cy="222" r="9"/>
+      <circle cx="203" cy="220" r="9"/>
+      <circle cx="233" cy="222" r="9"/>
+      <circle cx="261" cy="230" r="9"/>
+      <circle cx="285" cy="245" r="8"/>
+
+      <!-- rangée 5 -->
+      <circle cx="148" cy="258" r="9"/>
+      <circle cx="176" cy="253" r="9"/>
+      <circle cx="206" cy="252" r="9"/>
+      <circle cx="236" cy="254" r="9"/>
+      <circle cx="263" cy="262" r="9"/>
+
+      <!-- rangée 6 -->
+      <circle cx="158" cy="287" r="9"/>
+      <circle cx="186" cy="282" r="9"/>
+      <circle cx="216" cy="282" r="9"/>
+      <circle cx="245" cy="287" r="9"/>
+      <circle cx="270" cy="298" r="8"/>
+
+      <!-- rangée 7 -->
+      <circle cx="175" cy="315" r="8"/>
+      <circle cx="203" cy="312" r="9"/>
+      <circle cx="232" cy="315" r="9"/>
+      <circle cx="258" cy="325" r="8"/>
+
+      <!-- rangée 8 -->
+      <circle cx="195" cy="342" r="8"/>
+      <circle cx="222" cy="342" r="8"/>
+      <circle cx="247" cy="350" r="7"/>
+    </g>
+
+    <!-- ===== NUAGE ===== -->
+    <g filter="url(#cloudShadow)">
+      <ellipse cx="130" cy="370" rx="90" ry="65" fill="url(#cloudGrad)"/>
+      <ellipse cx="210" cy="395" rx="100" ry="60" fill="url(#cloudGrad)"/>
+      <ellipse cx="300" cy="400" rx="80" ry="52" fill="url(#cloudGrad)"/>
+      <ellipse cx="175" cy="420" rx="145" ry="58" fill="url(#cloudGrad)"/>
+      <!-- Base plate du nuage -->
+      <rect x="55" y="415" width="310" height="55" fill="#EEF5FF" rx="10"/>
+    </g>
+  </g>
 </svg>
