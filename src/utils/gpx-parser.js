@@ -28,19 +28,21 @@ export async function parseGpxFile(file) {
   let totalDist = 0;
   let elevGain = 0;
   let elevLoss = 0;
+  let prevPoint = null;
 
-  const points = trkpts.map((pt, i) => {
+  const points = trkpts.map((pt) => {
     const lat = parseFloat(pt.getAttribute('lat'));
     const lon = parseFloat(pt.getAttribute('lon'));
     const ele = parseFloat(pt.querySelector('ele')?.textContent || '0');
-    if (i > 0) {
-      const prev = points[i - 1];
-      totalDist += haversineKm(prev.lat, prev.lon, lat, lon);
-      const diff = ele - prev.ele;
+    if (prevPoint) {
+      totalDist += haversineKm(prevPoint.lat, prevPoint.lon, lat, lon);
+      const diff = ele - prevPoint.ele;
       if (diff > 0) elevGain += diff;
       else elevLoss += Math.abs(diff);
     }
-    return { lat, lon, ele, dist: totalDist };
+    const point = { lat, lon, ele, dist: totalDist };
+    prevPoint = point;
+    return point;
   });
 
   return { name, points, totalDistKm: totalDist, elevGain: Math.round(elevGain), elevLoss: Math.round(elevLoss) };
