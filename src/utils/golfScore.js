@@ -1,122 +1,60 @@
-export function computeGolfScore({ windspeed, windgusts, rainProb, uvIndex }) {
+export function computeGolfScore({ windspeed, windgusts, rainProb, uvIndex, weathercode }) {
   const ws = windspeed ?? 0;
   const wg = windgusts ?? ws * 1.3;
   const rp = rainProb ?? 0;
   const uv = uvIndex ?? 0;
+  const wc = weathercode ?? 0;
 
-  const windScore =
-    ws < 10 ? 30
-    : ws < 20 ? 30 - (ws - 10) * 1.5
-    : ws < 35 ? 15 - (ws - 20) * 0.8
-    : 0;
+  // Orage confirmé → score forcé à 0
+  if (wc >= 95) return { score: 0, level: 'bad', icon: '⛈️', labelKey: 'score.bad', stormRisk: 'confirmed' };
 
+  // Vent moyen (30 pts)
+  let windScore;
+  if (ws < 10)      windScore = 30;
+  else if (ws < 23) windScore = 30 - ((ws - 10) / 13) * 15;
+  else if (ws < 35) windScore = 15 - ((ws - 23) / 12) * 15;
+  else              windScore = 0;
+
+  // Stabilité rafales (20 pts)
   const gustRatio = wg / Math.max(ws, 1);
-  const gustScore =
-    gustRatio < 1.3 ? 20
-    : gustRatio < 1.6 ? 20 - (gustRatio - 1.3) * 40
-    : gustRatio < 2.2 ? 8 - (gustRatio - 1.6) * 10
-    : 0;
+  let gustScore;
+  if (gustRatio < 1.3)      gustScore = 20;
+  else if (gustRatio < 1.6) gustScore = 20 - ((gustRatio - 1.3) / 0.3) * 16;
+  else if (gustRatio < 2.1) gustScore = 4  - ((gustRatio - 1.6) / 0.5) * 4;
+  else                      gustScore = 0;
 
-  const rainScore =
-    rp < 10 ? 35
-    : rp < 30 ? 35 - (rp - 10) * 1.0
-    : rp < 60 ? 15 - (rp - 30) * 0.4
-    : 0;
+  // Pluie (35 pts)
+  let rainScore;
+  if (rp < 5)       rainScore = 35;
+  else if (rp < 25) rainScore = 35 - ((rp - 5)  / 20) * 20;
+  else if (rp < 60) rainScore = 15 - ((rp - 25) / 35) * 15;
+  else              rainScore = 0;
 
-  const uvScore =
-    uv <= 3 ? 15
-    : uv <= 6 ? 15
-    : uv <= 8 ? 12
-    : uv <= 10 ? 6
-    : 3;
+  // UV (15 pts)
+  let uvScore;
+  if (uv <= 7)      uvScore = 15;
+  else if (uv <= 8) uvScore = 14;
+  else if (uv <= 10) uvScore = 8;
+  else              uvScore = 3;
 
-  const total = Math.round(
-    Math.max(0, Math.min(100, windScore + Math.max(0, gustScore) + rainScore + uvScore))
-  );
+  // Risque orage (niveau 2)
+  const stormSignals = [rp > 60, wg > 50, wc >= 80].filter(Boolean).length;
+  let stormRisk = 'none';
+  if (stormSignals >= 2)                   stormRisk = 'high';
+  else if (stormSignals === 1 && rp > 40)  stormRisk = 'moderate';
 
-  if (total >= 75) return { score: total, level: 'ideal', icon: '⛳', labelKey: 'score.ideal' };
-  if (total >= 50) return { score: total, level: 'good',  icon: '✅', labelKey: 'score.good'  };
-  if (total >= 25) return { score: total, level: 'hard',  icon: '⚠️', labelKey: 'score.hard'  };
-  return              { score: total, level: 'bad',   icon: '⛔', labelKey: 'score.bad'   };
+  const total = Math.round(Math.max(0, Math.min(100, windScore + gustScore + rainScore + uvScore)));
+
+  if (total >= 75) return { score: total, level: 'ideal', icon: '⛳', labelKey: 'score.ideal', stormRisk };
+  if (total >= 45) return { score: total, level: 'good',  icon: '✅', labelKey: 'score.good',  stormRisk };
+  if (total >= 25) return { score: total, level: 'hard',  icon: '⚠️', labelKey: 'score.hard',  stormRisk };
+  return            { score: total, level: 'bad',   icon: '⛔', labelKey: 'score.bad',   stormRisk };
 }
 
 function parseSunsetHour(sunsetIso) {
   if (!sunsetIso) return 20.5;
-  const time = sunsetIso.slice(11, 16);
-  const [h, m] = time.split(':').map(Number);
+  const [h, m] = sunsetIso.slice(11, 16).split(':').map(Number);
   return h + m / 60;
-}
-
-export function findBestTeeTime(hours, sunsetIso, roundType) {
-  const durationH = roundType === '9' ? 2.5 : 5;
-  const deadlineHour = parseSunsetHour(sunsetIso) - 0.5;
-
-  // Départ minimum 7h30 — données à granularité 1h → première heure valide = 8h
-  const MIN_TEE_HOUR = 8;
-  const golfHours = hours.filter((h) => h.hour >= MIN_TEE_HOUR && h.hour <= 19);
-  if (golfHours.length === 0) return null;
-
-  let bestStart = null;
-  let bestScore = -1;
-
-  for (let i = 0; i < golfHours.length; i++) {
-    const startHour = golfHours[i].hour;
-    const endHour = startHour + durationH;
-    if (endHour > deadlineHour) continue;
-
-    const windowHours = golfHours.filter(
-      (h) => h.hour >= startHour && h.hour < startHour + Math.ceil(durationH)
-    );
-    if (windowHours.length < Math.floor(durationH)) continue;
-
-    const avgScore =
-      windowHours.reduce((sum, h) => {
-        const { score } = computeGolfScore({
-          windspeed: h.windspeed,
-          windgusts: h.windgusts,
-          rainProb: h.rainProb,
-          uvIndex: h.uvIndex,
-        });
-        return sum + score;
-      }, 0) / windowHours.length;
-
-    if (avgScore > bestScore) {
-      bestScore = avgScore;
-      bestStart = startHour;
-    }
-  }
-
-  if (bestStart === null) return null;
-
-  const endTotal = bestStart + durationH;
-  const endH = Math.floor(endTotal);
-  const endMin = endTotal % 1 !== 0 ? '30' : '00';
-
-  const windowHours = golfHours.filter(
-    (h) => h.hour >= bestStart && h.hour < bestStart + Math.ceil(durationH)
-  );
-  const avgWind = Math.round(
-    windowHours.reduce((s, h) => s + (h.windspeed ?? 0), 0) / windowHours.length
-  );
-  const avgRain = Math.round(
-    windowHours.reduce((s, h) => s + (h.rainProb ?? 0), 0) / windowHours.length
-  );
-  const avgUv = (
-    windowHours.reduce((s, h) => s + (h.uvIndex ?? 0), 0) / windowHours.length
-  ).toFixed(1);
-  const avgGusts = Math.round(
-    windowHours.reduce((s, h) => s + (h.windgusts ?? 0), 0) / windowHours.length
-  );
-
-  return {
-    teeTime: `${bestStart}h00`,
-    endTime: `${endH}h${endMin}`,
-    score: Math.round(bestScore),
-    avgWind,
-    avgGusts,
-    avgRain,
-    avgUv,
-  };
 }
 
 export const SCORE_COLORS = {

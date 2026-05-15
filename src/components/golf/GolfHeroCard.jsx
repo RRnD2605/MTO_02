@@ -17,16 +17,18 @@ export default function GolfHeroCard({ dayData, lang, windUnit, t }) {
 
   const scoreInputs = currentHourData
     ? {
-        windspeed: currentHourData.windspeed,
-        windgusts: currentHourData.windgusts,
-        rainProb: currentHourData.rainProb,
-        uvIndex: currentHourData.uvIndex,
+        windspeed:   currentHourData.windspeed,
+        windgusts:   currentHourData.windgusts,
+        rainProb:    currentHourData.rainProb,
+        uvIndex:     currentHourData.uvIndex,
+        weathercode: currentHourData.weathercode,
       }
     : {
-        windspeed: dayData.windspeed ?? 0,
-        windgusts: (dayData.windspeed ?? 0) * 1.3,
-        rainProb: dayData.rainProb ?? 0,
-        uvIndex: dayData.uvMax ?? 0,
+        windspeed:   dayData.windspeed ?? 0,
+        windgusts:   (dayData.windspeed ?? 0) * 1.3,
+        rainProb:    dayData.rainProb ?? 0,
+        uvIndex:     dayData.uvMax ?? 0,
+        weathercode: dayData.weathercode ?? 0,
       };
 
   const scoreResult = computeGolfScore(scoreInputs);

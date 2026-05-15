@@ -70,8 +70,20 @@ export default {
   'kmh': 'km/h',
 
   'tee.time.title': 'Optimal tee time',
-  'tee.9holes': '9 holes · 2h30',
-  'tee.18holes': '18 holes · 5h',
+  'tee.9holes': '9 holes · 2h15',
+  'tee.18holes': '18 holes · 4h30',
   'tee.sunset': 'Sunset',
   'tee.no.slot': 'No slot available today',
+  'tee.start': 'Start',
+  'tee.round.score': 'Round score',
+  'tee.warning': 'Conditions deteriorating at {hour}h',
+
+  'my.round': 'My round',
+
+  'alert.storm.confirmed': 'Thunderstorm confirmed — Do not play. Leave the course immediately.',
+  'alert.storm.high':      'High storm risk — Monitor conditions closely.',
+  'alert.storm.moderate':  'Possible stormy conditions during the day.',
+
+  'week.weekend': 'Weekend',
+  'week.week': 'Week',
 };

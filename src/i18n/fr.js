@@ -70,8 +70,20 @@ export default {
   'kmh': 'km/h',
 
   'tee.time.title': 'Heure de départ optimale',
-  'tee.9holes': '9 trous · 2h30',
-  'tee.18holes': '18 trous · 5h',
+  'tee.9holes': '9 trous · 2h15',
+  'tee.18holes': '18 trous · 4h30',
   'tee.sunset': 'Coucher du soleil',
   'tee.no.slot': "Pas de créneau disponible aujourd'hui",
+  'tee.start': 'Départ',
+  'tee.round.score': 'Score de la partie',
+  'tee.warning': 'Conditions se dégradent à {hour}h',
+
+  'my.round': 'Ma partie',
+
+  'alert.storm.confirmed': 'Orage confirmé — Ne pas jouer. Quittez le parcours immédiatement.',
+  'alert.storm.high':      "Risque élevé d'orage — Surveillez l'évolution des conditions.",
+  'alert.storm.moderate':  'Conditions orageuses possibles en cours de journée.',
+
+  'week.weekend': 'Week-end',
+  'week.week': 'Semaine',
 };

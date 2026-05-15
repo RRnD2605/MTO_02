@@ -63,7 +63,7 @@ export async function fetchGolfWeather(lat, lon, signal) {
   const cached = getCached(cacheKey);
   if (cached) return cached;
 
-  const url = buildUrl(lat, lon, GOLF_DAILY, GOLF_HOURLY, '&forecast_days=4');
+  const url = buildUrl(lat, lon, GOLF_DAILY, GOLF_HOURLY, '&forecast_days=7');
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
