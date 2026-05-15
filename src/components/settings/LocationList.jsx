@@ -35,7 +35,7 @@ export default function LocationList({ items, onRemove, onMove, showModel, t }) 
             )}
             {showModel && (
               <div className="text-xs text-[var(--color-text-3)] font-mono mt-0.5">
-                {t(getModelName(item.lat, item.lon))}
+                {t(getModelName())}
               </div>
             )}
           </div>

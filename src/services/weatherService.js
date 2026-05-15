@@ -1,16 +1,14 @@
 const cache = new Map();
 const CACHE_TTL = 10 * 60 * 1000;
 
-function getWeatherEndpoint(lat, lon) {
-  const inAromeZone = lat >= 36 && lat <= 55 && lon >= -10 && lon <= 16;
-  return inAromeZone
-    ? 'https://api.open-meteo.com/v1/meteofrance'
-    : 'https://api.open-meteo.com/v1/forecast';
-}
+// /v1/forecast = endpoint "best match" ECMWF — fournit precipitation_probability
+// et uv_index que /v1/meteofrance (AROME) ne fournit pas.
+// Pour la France, /v1/forecast incorpore quand même les données AROME pour
+// température et vent via le blending multi-modèles d'Open-Meteo.
+const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
-export function getModelName(lat, lon) {
-  const inAromeZone = lat >= 36 && lat <= 55 && lon >= -10 && lon <= 16;
-  return inAromeZone ? 'model.arome' : 'model.ecmwf';
+export function getModelName() {
+  return 'model.ecmwf';
 }
 
 function buildCacheKey(lat, lon, type) {
@@ -36,9 +34,9 @@ export function invalidateCache(lat, lon) {
   cache.delete(buildCacheKey(lat, lon, 'golf'));
 }
 
-// Construit une URL avec virgules littérales — Open-Meteo n'accepte pas %2C
-function buildUrl(base, lat, lon, daily, hourly, extra = '') {
-  return `${base}?latitude=${lat}&longitude=${lon}&daily=${daily}&hourly=${hourly}&current_weather=true&timezone=auto${extra}`;
+// Virgules littérales dans l'URL — Open-Meteo n'accepte pas %2C
+function buildUrl(lat, lon, daily, hourly, extra = '') {
+  return `${FORECAST_URL}?latitude=${lat}&longitude=${lon}&daily=${daily}&hourly=${hourly}&current_weather=true&timezone=auto${extra}`;
 }
 
 const CITY_DAILY  = 'weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max,winddirection_10m_dominant,uv_index_max';
@@ -52,7 +50,7 @@ export async function fetchCityWeather(lat, lon, signal) {
   const cached = getCached(cacheKey);
   if (cached) return cached;
 
-  const url = buildUrl(getWeatherEndpoint(lat, lon), lat, lon, CITY_DAILY, CITY_HOURLY, '&forecast_days=5');
+  const url = buildUrl(lat, lon, CITY_DAILY, CITY_HOURLY, '&forecast_days=5');
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
@@ -65,7 +63,7 @@ export async function fetchGolfWeather(lat, lon, signal) {
   const cached = getCached(cacheKey);
   if (cached) return cached;
 
-  const url = buildUrl(getWeatherEndpoint(lat, lon), lat, lon, GOLF_DAILY, GOLF_HOURLY, '&forecast_days=4');
+  const url = buildUrl(lat, lon, GOLF_DAILY, GOLF_HOURLY, '&forecast_days=4');
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();

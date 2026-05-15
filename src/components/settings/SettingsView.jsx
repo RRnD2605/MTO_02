@@ -74,7 +74,7 @@ export default function SettingsView({
             >
               <span className="text-sm text-[var(--color-text)] truncate mr-2">{loc.name}</span>
               <span className="text-xs font-mono text-[var(--color-text-3)] bg-[var(--color-surface-2)] px-2 py-0.5 rounded-full flex-shrink-0">
-                {t(getModelName(loc.lat, loc.lon))}
+                {t(getModelName())}
               </span>
             </div>
           ))}
