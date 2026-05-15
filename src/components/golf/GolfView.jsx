@@ -5,11 +5,13 @@ import TeeTimeSelector from './TeeTimeSelector.jsx';
 import AlertBanner from './AlertBanner.jsx';
 import MetricsGrid from './MetricsGrid.jsx';
 import HoursTable from './HoursTable.jsx';
+import DaySelector from '../city/DaySelector.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { parseGolfDayData, generateAlerts } from '../../utils/weatherUtils.js';
 
 export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }) {
   const [activeId, setActiveId] = useState(golfs[0]?.id);
+  const [dayIndex, setDayIndex] = useState(0);
 
   const activeGolf = golfs.find((g) => g.id === activeId) || golfs[0];
   const { data, loading, error, updatedAt, refresh } = useWeather(activeGolf, 'golf');
@@ -20,8 +22,8 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
     }
   }, [updatedAt, refresh, onUpdateTimestamp]);
 
-  const dayData = parseGolfDayData(data, 0);
-  const alerts = dayData && data ? generateAlerts(data.daily, 0, lang) : [];
+  const dayData = parseGolfDayData(data, dayIndex);
+  const alerts = dayData && data ? generateAlerts(data.daily, dayIndex, lang) : [];
 
   return (
     <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
@@ -29,7 +31,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
         <LocationTabs
           locations={golfs}
           activeId={activeId}
-          onSelect={setActiveId}
+          onSelect={(id) => { setActiveId(id); setDayIndex(0); }}
           accentClass="bg-[var(--color-golf)] text-white"
         />
       </div>
@@ -52,6 +54,12 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
 
       {data && (
         <>
+          <DaySelector
+            dates={data.daily.time}
+            selectedIndex={dayIndex}
+            onSelect={setDayIndex}
+            t={t}
+          />
           <AlertBanner alerts={alerts} t={t} />
           <GolfHeroCard dayData={dayData} lang={lang} windUnit={windUnit} t={t} />
           <TeeTimeSelector dayData={dayData} windUnit={windUnit} t={t} />

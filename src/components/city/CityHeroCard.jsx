@@ -10,11 +10,11 @@ export default function CityHeroCard({ dayData, lang, t }) {
 
   return (
     <div className="px-4 py-6">
-      <div className="bg-[var(--color-city-bg)] rounded-2xl p-6">
+      <div className="bg-[var(--color-surface-2)] rounded-2xl p-6">
         <div className="flex items-start justify-between">
           <div>
             <div
-              className="font-mono text-7xl font-light tracking-tight text-[var(--color-city-text)]"
+              className="font-mono text-7xl font-light tracking-tight text-[var(--color-text)]"
               style={{ letterSpacing: '-0.04em' }}
             >
               {Math.round(displayTemp)}°

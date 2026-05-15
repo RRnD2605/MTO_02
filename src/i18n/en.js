@@ -55,6 +55,7 @@ export default {
   'feels.like': 'Feels like',
   'sunrise': 'Sunrise',
   'sunset': 'Sunset',
+  'sunTimes': 'Sunrise · Sunset',
   'gusts': 'Gusts',
   'playability': 'Playability',
 

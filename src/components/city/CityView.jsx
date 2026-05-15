@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import LocationTabs from '../shared/LocationTabs.jsx';
 import CityHeroCard from './CityHeroCard.jsx';
 import DaySelector from './DaySelector.jsx';
-import HourlyScroll from './HourlyScroll.jsx';
+import DaySlots from './DaySlots.jsx';
 import ForecastList from './ForecastList.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { parseDayData, formatWind, windDirection } from '../../utils/weatherUtils.js';
@@ -51,14 +51,14 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
 
       {data && (
         <>
-          <CityHeroCard dayData={dayData} lang={lang} t={t} />
-
           <DaySelector
             dates={data.daily.time}
             selectedIndex={dayIndex}
             onSelect={setDayIndex}
             t={t}
           />
+
+          <CityHeroCard dayData={dayData} lang={lang} t={t} />
 
           {dayData && (
             <div className="flex gap-3 px-4">
@@ -81,7 +81,7 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
             </div>
           )}
 
-          {dayData && <HourlyScroll hours={dayData.hours} isToday={dayIndex === 0} />}
+          {dayData && <DaySlots hours={dayData.hours} lang={lang} windUnit={windUnit} />}
 
           <ForecastList
             weatherData={data}

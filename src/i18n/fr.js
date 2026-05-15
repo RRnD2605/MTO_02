@@ -55,6 +55,7 @@ export default {
   'feels.like': 'Ressenti',
   'sunrise': 'Lever',
   'sunset': 'Coucher',
+  'sunTimes': 'Lever · Coucher',
   'gusts': 'Rafales',
   'playability': 'Jouabilité',
 
