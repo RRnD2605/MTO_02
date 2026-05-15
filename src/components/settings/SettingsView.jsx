@@ -9,6 +9,7 @@ export default function SettingsView({
   addGolf, removeGolf, moveGolf,
   lang, setLang,
   windUnit, setWindUnit,
+  activities, setActivity,
   t,
 }) {
   const [modal, setModal] = useState(null);
@@ -59,6 +60,41 @@ export default function SettingsView({
             </button>
           ))}
         </div>
+      </Section>
+
+      <Section title={t('settings.activities')}>
+        {[
+          { key: 'rando', labelKey: 'settings.activities.rando' },
+          { key: 'vtt',   labelKey: 'settings.activities.vtt' },
+          { key: 'golf',  labelKey: 'settings.activities.golf' },
+        ].map(({ key, labelKey }) => {
+          const enabled = activities?.[key] ?? false;
+          const isLastEnabled = enabled && Object.values(activities || {}).filter(Boolean).length <= 1;
+          return (
+            <div
+              key={key}
+              className="flex items-center justify-between px-4 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]"
+            >
+              <span className="text-sm text-[var(--color-text)]">{t(labelKey)}</span>
+              <button
+                onClick={() => {
+                  if (isLastEnabled) return;
+                  setActivity(key, !enabled);
+                }}
+                disabled={isLastEnabled}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  enabled ? 'bg-[#27500A]' : 'bg-[var(--color-border)]'
+                } ${isLastEnabled ? 'opacity-40' : ''}`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                    enabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          );
+        })}
       </Section>
 
       <Section title={t('settings.sources')}>

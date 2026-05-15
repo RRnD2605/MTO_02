@@ -188,3 +188,42 @@ export function parseGolfDayData(weatherData, dayIndex) {
     currentWeathercode: dayIndex === 0 ? current_weather?.weathercode : null,
   };
 }
+
+export function parseActivityDayData(weatherData, dayIndex) {
+  if (!weatherData) return null;
+  const { daily, hourly, current_weather } = weatherData;
+  const date = daily.time?.[dayIndex];
+  if (!date) return null;
+
+  const dayHours = hourly.time
+    .map((t, i) => ({ t, i }))
+    .filter(({ t }) => t.startsWith(date))
+    .map(({ i }) => ({
+      time: hourly.time[i],
+      hour: parseInt(hourly.time[i].slice(11, 13), 10),
+      temp: hourly.temperature_2m[i] ?? 0,
+      apparentTemp: hourly.apparent_temperature?.[i] ?? 0,
+      weathercode: hourly.weathercode?.[i] ?? 0,
+      windspeed: hourly.windspeed_10m[i] ?? 0,
+      winddirection: hourly.winddirection_10m[i] ?? 0,
+      windgusts: hourly.windgusts_10m?.[i] ?? (hourly.windspeed_10m[i] ?? 0) * 1.3,
+      rainProb: hourly.precipitation_probability[i] ?? 0,
+      precipitation: hourly.precipitation?.[i] ?? 0,
+      humidity: hourly.relativehumidity_2m?.[i] ?? 0,
+      uvIndex: hourly.uv_index?.[i] ?? 0,
+    }));
+
+  return {
+    date,
+    maxTemp: daily.temperature_2m_max[dayIndex] ?? 0,
+    minTemp: daily.temperature_2m_min[dayIndex] ?? 0,
+    weathercode: daily.weathercode[dayIndex] ?? 0,
+    rainProb: daily.precipitation_probability_max?.[dayIndex] ?? 0,
+    windspeed: daily.windspeed_10m_max[dayIndex] ?? 0,
+    winddirection: daily.winddirection_10m_dominant[dayIndex] ?? 0,
+    uvMax: daily.uv_index_max?.[dayIndex] ?? 0,
+    hours: dayHours,
+    currentTemp: dayIndex === 0 ? (current_weather?.temperature ?? null) : null,
+    currentWeathercode: dayIndex === 0 ? (current_weather?.weathercode ?? null) : null,
+  };
+}

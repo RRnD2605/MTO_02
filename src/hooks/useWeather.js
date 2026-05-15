@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { fetchCityWeather, fetchGolfWeather, invalidateCache } from '../services/weatherService.js';
+import { fetchCityWeather, fetchGolfWeather, fetchActivityWeather, invalidateCache } from '../services/weatherService.js';
 
 export function useWeather(location, type = 'city') {
   const [data, setData] = useState(null);
@@ -8,7 +8,7 @@ export function useWeather(location, type = 'city') {
   const [updatedAt, setUpdatedAt] = useState(null);
   const abortRef = useRef(null);
 
-  const fetchFn = type === 'golf' ? fetchGolfWeather : fetchCityWeather;
+  const fetchFn = type === 'golf' ? fetchGolfWeather : type === 'activity' ? fetchActivityWeather : fetchCityWeather;
 
   const load = useCallback(
     async (forceRefresh = false) => {

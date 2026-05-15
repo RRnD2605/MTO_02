@@ -86,4 +86,45 @@ export default {
 
   'week.weekend': 'Weekend',
   'week.week': 'Week',
+
+  'nav.activities': 'Activities',
+
+  'settings.activities': 'Outdoor activities',
+  'settings.activities.rando': 'Hiking',
+  'settings.activities.vtt': 'Mountain biking',
+  'settings.activities.golf': 'Golf (activity view)',
+
+  'score.rando.ideal': 'Ideal conditions',
+  'score.rando.good': 'Good conditions',
+  'score.rando.hard': 'Difficult conditions',
+  'score.rando.bad': 'Not recommended',
+
+  'score.vtt.ideal': 'Ideal conditions',
+  'score.vtt.good': 'Rideable trails',
+  'score.vtt.hard': 'Difficult conditions',
+  'score.vtt.bad': 'Not recommended',
+
+  'soil.dry': 'Dry trail',
+  'soil.damp': 'Slightly damp',
+  'soil.wet': 'Wet trail',
+  'soil.mud': 'Mud — trail not recommended',
+
+  'vis.good': 'Good',
+  'vis.fog': 'Reduced (fog)',
+
+  'gpx.title': 'GPX Route Analysis',
+  'gpx.intro': 'Import a GPX route to get detailed weather along your entire track.',
+  'gpx.drop': 'Drop a GPX file here',
+  'gpx.drop.sub': 'Strava, Komoot, Garmin, Wikiloc...',
+  'gpx.back': 'Back',
+  'gpx.departure': 'Departure time',
+  'gpx.duration': 'Estimated duration',
+  'gpx.points': 'Weather points',
+  'gpx.analyze': 'Analyze route',
+  'gpx.change.file': 'Change file',
+  'gpx.loading': 'Fetching weather data...',
+  'gpx.modify': 'Modify settings',
+  'gpx.new': 'New analysis',
+  'gpx.error.not.gpx': 'Please select a .gpx file',
+  'gpx.error.parse': 'Unable to read the GPX file',
 };

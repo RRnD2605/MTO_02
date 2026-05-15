@@ -32,6 +32,7 @@ function setCached(key, data) {
 export function invalidateCache(lat, lon) {
   cache.delete(buildCacheKey(lat, lon, 'city'));
   cache.delete(buildCacheKey(lat, lon, 'golf'));
+  cache.delete(buildCacheKey(lat, lon, 'activity'));
 }
 
 // Virgules littérales dans l'URL — Open-Meteo n'accepte pas %2C
@@ -64,6 +65,22 @@ export async function fetchGolfWeather(lat, lon, signal) {
   if (cached) return cached;
 
   const url = buildUrl(lat, lon, GOLF_DAILY, GOLF_HOURLY, '&forecast_days=7');
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  setCached(cacheKey, data);
+  return data;
+}
+
+const ACTIVITY_DAILY  = 'weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max,winddirection_10m_dominant,uv_index_max';
+const ACTIVITY_HOURLY = 'temperature_2m,apparent_temperature,weathercode,windspeed_10m,winddirection_10m,windgusts_10m,precipitation_probability,precipitation,relativehumidity_2m,uv_index';
+
+export async function fetchActivityWeather(lat, lon, signal) {
+  const cacheKey = buildCacheKey(lat, lon, 'activity');
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+
+  const url = buildUrl(lat, lon, ACTIVITY_DAILY, ACTIVITY_HOURLY, '&forecast_days=7');
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();

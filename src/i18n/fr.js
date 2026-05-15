@@ -86,4 +86,45 @@ export default {
 
   'week.weekend': 'Week-end',
   'week.week': 'Semaine',
+
+  'nav.activities': 'Activités',
+
+  'settings.activities': 'Activités outdoor',
+  'settings.activities.rando': 'Randonnée',
+  'settings.activities.vtt': 'VTT',
+  'settings.activities.golf': 'Golf (vue activité)',
+
+  'score.rando.ideal': 'Conditions idéales',
+  'score.rando.good': 'Bonnes conditions',
+  'score.rando.hard': 'Conditions difficiles',
+  'score.rando.bad': 'Déconseillé',
+
+  'score.vtt.ideal': 'Conditions idéales',
+  'score.vtt.good': 'Sols praticables',
+  'score.vtt.hard': 'Conditions difficiles',
+  'score.vtt.bad': 'Déconseillé',
+
+  'soil.dry': 'Sol sec',
+  'soil.damp': 'Sol légèrement humide',
+  'soil.wet': 'Sol humide',
+  'soil.mud': 'Boue — trail déconseillé',
+
+  'vis.good': 'Bonne',
+  'vis.fog': 'Réduite (brouillard)',
+
+  'gpx.title': 'Analyse de trace GPX',
+  'gpx.intro': 'Importez une trace GPX pour obtenir la météo détaillée tout au long de votre parcours.',
+  'gpx.drop': 'Déposer un fichier GPX',
+  'gpx.drop.sub': 'Strava, Komoot, Garmin, Wikiloc...',
+  'gpx.back': 'Retour',
+  'gpx.departure': 'Heure de départ',
+  'gpx.duration': 'Durée estimée',
+  'gpx.points': 'Points météo',
+  'gpx.analyze': 'Analyser la trace',
+  'gpx.change.file': 'Changer de fichier',
+  'gpx.loading': 'Récupération des données météo...',
+  'gpx.modify': 'Modifier les paramètres',
+  'gpx.new': 'Nouvelle analyse',
+  'gpx.error.not.gpx': 'Veuillez sélectionner un fichier .gpx',
+  'gpx.error.parse': 'Impossible de lire le fichier GPX',
 };
