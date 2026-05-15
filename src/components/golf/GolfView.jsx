@@ -133,9 +133,11 @@ function ViewDots({ active }) {
 }
 
 // ─── Main GolfView ────────────────────────────────────────────────────────────
+const getInitialDayIndex = () => new Date().getHours() >= 21 ? 1 : 0;
+
 export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }) {
   const [activeId, setActiveId] = useState(golfs[0]?.id);
-  const [dayIndex, setDayIndex] = useState(0);
+  const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
   const [showWeekView, setShowWeekView] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
 

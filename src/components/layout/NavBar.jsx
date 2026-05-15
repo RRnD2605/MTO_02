@@ -1,18 +1,35 @@
+function MapIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+         fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+         aria-hidden="true">
+      <path d="M12 18.5l-3-3a4 4 0 1 1 6 0l-3 3z"/>
+      <path d="M12 18.5v3.5"/>
+      <path d="M10 22h4"/>
+      <path d="M3 7l9-4 9 4"/>
+      <path d="M3 7v10"/>
+      <path d="M21 7v10"/>
+      <path d="M3 17l9 4 9-4"/>
+    </svg>
+  );
+}
+
 export default function NavBar({ activeTab, onTab, t }) {
+  const indicatorColor = (id) =>
+    id === 'cities' ? 'bg-[var(--color-city)]'
+    : id === 'golf' ? 'bg-[var(--color-golf)]'
+    : 'bg-[var(--color-text-2)]';
+
   const tabs = [
-    { id: 'cities', labelKey: 'nav.cities', icon: '🏙️' },
-    { id: 'golf',   labelKey: 'nav.golf',   icon: '⛳' },
-    { id: 'settings', labelKey: 'nav.settings', icon: '⚙️' },
+    { id: 'cities',   labelKey: 'nav.cities',   renderIcon: () => <MapIcon /> },
+    { id: 'golf',     labelKey: 'nav.golf',      renderIcon: () => <span className="text-base">⛳</span> },
+    { id: 'settings', labelKey: 'nav.settings',  renderIcon: () => <span className="text-base">⚙️</span> },
   ];
 
   return (
     <nav className="sticky top-0 z-30 bg-[var(--color-surface)] border-b border-[var(--color-border)] flex">
-      {tabs.map(({ id, labelKey, icon }) => {
+      {tabs.map(({ id, labelKey, renderIcon }) => {
         const active = id === activeTab;
-        const indicatorColor =
-          id === 'cities' ? 'bg-[var(--color-city)]'
-          : id === 'golf' ? 'bg-[var(--color-golf)]'
-          : 'bg-[var(--color-text-2)]';
         return (
           <button
             key={id}
@@ -21,10 +38,10 @@ export default function NavBar({ activeTab, onTab, t }) {
               active ? 'text-[var(--color-text)]' : 'text-[var(--color-text-3)]'
             }`}
           >
-            <span className="text-base">{icon}</span>
+            {renderIcon()}
             <span>{t(labelKey)}</span>
             {active && (
-              <span className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-t ${indicatorColor}`} />
+              <span className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-t ${indicatorColor(id)}`} />
             )}
           </button>
         );

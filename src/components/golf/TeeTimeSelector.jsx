@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { computeGolfScore } from '../../utils/golfScore.js';
 import { wmoIcon, formatWind } from '../../utils/weatherUtils.js';
+import RainDrop from '../shared/RainDrop.jsx';
 
 const ROUND_DURATION = { '9': 2.25, '18': 4.5 };
 
@@ -13,13 +14,12 @@ function parseSunsetHour(sunsetIso) {
 function getRoundHourNums(startHour, startMin, roundType) {
   const duration = ROUND_DURATION[roundType];
   const startDecimal = startHour + startMin / 60;
-  const seen = new Set();
-  const result = [];
-  for (let offset = 0; offset < duration; offset += 1) {
-    const h = Math.floor(startDecimal + offset);
-    if (!seen.has(h)) { seen.add(h); result.push(h); }
+  const endHour = startDecimal + duration;
+  const hoursSet = new Set();
+  for (let h = Math.floor(startDecimal); h <= Math.ceil(endHour); h++) {
+    hoursSet.add(h);
   }
-  return result;
+  return [...hoursSet];
 }
 
 function levelFromScore(avg) {
@@ -165,7 +165,7 @@ export default function TeeTimeSelector({ dayData, windUnit, t }) {
               <span className="text-[var(--color-golf-text)] flex-1">
                 {formatWind(windspeed, windUnit)}
               </span>
-              <span className="text-[var(--color-text-3)] w-9">💧{rainProb}%</span>
+              <span className="text-[var(--color-text-3)] w-9"><RainDrop prob={rainProb} />{rainProb}%</span>
               <span className="w-4 text-right">{result.icon}</span>
             </div>
           ))}

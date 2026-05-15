@@ -1,4 +1,5 @@
 import { getWeatherIcon } from '../../utils/weatherUtils.js';
+import RainDrop from '../shared/RainDrop.jsx';
 
 function rainColor(prob) {
   if (prob < 20) return '#B5D4F4';
@@ -56,13 +57,21 @@ export default function ForecastList({ weatherData, selectedIndex, onSelect, t }
 
               {/* Pastille pluie + % */}
               <div className="flex items-center gap-1 flex-shrink-0">
-                <span
-                  className="inline-block rounded-full"
-                  style={{ width: 8, height: 8, backgroundColor: rainColor(rainProb) }}
-                />
-                <span className="text-xs font-mono" style={{ color: rainColor(rainProb) }}>
-                  {rainProb}%
-                </span>
+                {rainProb === 0 ? (
+                  <span className="text-xs font-mono text-[var(--color-text-3)]">
+                    <RainDrop prob={0} />0%
+                  </span>
+                ) : (
+                  <>
+                    <span
+                      className="inline-block rounded-full"
+                      style={{ width: 8, height: 8, backgroundColor: rainColor(rainProb) }}
+                    />
+                    <span className="text-xs font-mono" style={{ color: rainColor(rainProb) }}>
+                      {rainProb}%
+                    </span>
+                  </>
+                )}
               </div>
 
               <div className="flex-1" />

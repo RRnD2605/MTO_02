@@ -7,9 +7,11 @@ import ForecastList from './ForecastList.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { parseDayData, formatWind, windDirection } from '../../utils/weatherUtils.js';
 
+const getInitialDayIndex = () => new Date().getHours() >= 21 ? 1 : 0;
+
 export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp }) {
   const [activeId, setActiveId] = useState(cities[0]?.id);
-  const [dayIndex, setDayIndex] = useState(0);
+  const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
 
   const activeCity = cities.find((c) => c.id === activeId) || cities[0];
   const { data, loading, error, updatedAt, refresh } = useWeather(activeCity, 'city');
@@ -61,22 +63,26 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
           <CityHeroCard dayData={dayData} lang={lang} t={t} />
 
           {dayData && (
-            <div className="flex gap-3 px-4">
+            <div className="flex gap-2 px-4">
               <MetricItem
                 label={t('wind')}
                 value={formatWind(dayData.windspeed ?? 0, windUnit)}
                 sub={windDirection(dayData.winddirection ?? 0)}
+                icon="💨"
+                extra={dayData.windgusts ? `↑ ${formatWind(dayData.windgusts, windUnit)}` : null}
                 accent
               />
               <MetricItem
                 label={t('rain')}
                 value={`${dayData.rainProb ?? 0}%`}
-                sub="💧"
+                icon={null}
+                sub={null}
               />
               <MetricItem
                 label={t('uv')}
                 value={dayData.uvMax != null ? Math.round(dayData.uvMax).toString() : '0'}
-                sub="☀️"
+                icon="☀️"
+                sub={null}
               />
             </div>
           )}
@@ -95,14 +101,18 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
   );
 }
 
-function MetricItem({ label, value, sub, accent }) {
+function MetricItem({ label, value, sub, icon, accent, extra }) {
   return (
-    <div className="flex-1 bg-[var(--color-surface-2)] rounded-xl p-3">
-      <div className="text-xs text-[var(--color-text-3)] mb-1">{label}</div>
-      <div className={`font-mono text-lg font-medium ${accent ? 'text-[var(--color-city-text)]' : 'text-[var(--color-text)]'}`}>
+    <div className="flex-1 bg-[var(--color-surface-2)] rounded-xl p-2">
+      <div className="flex items-center gap-1 mb-1">
+        {icon && <span className="text-sm">{icon}</span>}
+        {sub && <span className="text-xs text-[var(--color-text-3)]">{sub}</span>}
+      </div>
+      <div className="text-xs text-[var(--color-text-3)] mb-0.5">{label}</div>
+      <div className={`font-mono text-base font-medium ${accent ? 'text-[var(--color-city-text)]' : 'text-[var(--color-text)]'}`}>
         {value}
       </div>
-      <div className="text-xs text-[var(--color-text-3)] mt-0.5">{sub}</div>
+      {extra && <div className="text-xs text-[var(--color-text-3)] mt-0.5">{extra}</div>}
     </div>
   );
 }
@@ -116,7 +126,7 @@ function SkeletonCity() {
           <div key={i} className="bg-[var(--color-surface-2)] rounded-full h-8 w-16 flex-shrink-0" />
         ))}
       </div>
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         {[0, 1, 2].map((i) => (
           <div key={i} className="flex-1 bg-[var(--color-surface-2)] rounded-xl h-16" />
         ))}

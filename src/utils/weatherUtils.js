@@ -142,6 +142,7 @@ export function parseDayData(weatherData, dayIndex) {
     rainProb: daily.precipitation_probability_max?.[dayIndex] ?? 0,
     windspeed: daily.windspeed_10m_max[dayIndex] ?? 0,
     winddirection: daily.winddirection_10m_dominant[dayIndex] ?? 0,
+    windgusts: daily.windspeed_10m_max?.[dayIndex] ?? 0,
     uvMax: daily.uv_index_max?.[dayIndex] ?? 0,
     hours: dayHours,
     // currentTemp uniquement pour aujourd'hui (j0)

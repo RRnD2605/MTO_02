@@ -1,5 +1,6 @@
 import { getWeatherIcon, formatWind } from '../../utils/weatherUtils.js';
 import { computeGolfScore, SCORE_COLORS } from '../../utils/golfScore.js';
+import RainDrop from '../shared/RainDrop.jsx';
 
 export default function HoursTable({ hours, windUnit, t }) {
   if (!hours || hours.length === 0) return null;
@@ -17,7 +18,7 @@ export default function HoursTable({ hours, windUnit, t }) {
             <th className="px-1 py-2 text-center text-[var(--color-text-3)] font-medium">—</th>
             <th className="px-1 py-2 text-right text-[var(--color-text-3)] font-medium">°C</th>
             <th className="px-1 py-2 text-right text-[var(--color-text-3)] font-medium">{t('wind')}</th>
-            <th className="px-1 py-2 text-right text-[var(--color-text-3)] font-medium">💧</th>
+            <th className="px-1 py-2 text-right text-[var(--color-text-3)] font-medium"><RainDrop prob={1} /></th>
             <th className="px-2 py-2 text-center text-[var(--color-text-3)] font-medium">●</th>
           </tr>
         </thead>
@@ -50,7 +51,7 @@ export default function HoursTable({ hours, windUnit, t }) {
                   {formatWind(h.windspeed, windUnit)}
                 </td>
                 <td className="px-1 py-2 text-right font-mono text-[var(--color-text-2)]">
-                  {h.rainProb ?? 0}%
+                  <RainDrop prob={h.rainProb ?? 0} />{h.rainProb ?? 0}%
                 </td>
                 <td className="px-2 py-2 text-center">
                   <span
