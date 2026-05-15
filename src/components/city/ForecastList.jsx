@@ -1,7 +1,5 @@
 import { getWeatherIcon } from '../../utils/weatherUtils.js';
 
-const DAY_LABELS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
-
 function rainColor(prob) {
   if (prob < 20) return '#B5D4F4';
   if (prob < 50) return '#378ADD';
@@ -9,19 +7,32 @@ function rainColor(prob) {
   return '#0C447C';
 }
 
+function dayLabel(date, i, t) {
+  if (i === 0) return t('today');       // "Aujourd'hui" ou "Today"
+  if (i === 1) return t('tomorrow');    // "Demain"
+  // Abbréviations 3 lettres toujours dans la locale fr
+  return new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short' });
+}
+
 export default function ForecastList({ weatherData, selectedIndex, onSelect, t }) {
   if (!weatherData) return null;
   const { daily } = weatherData;
   if (!daily?.time) return null;
 
+  // Exclure les jours sans données valides (tempMax et tempMin tous deux à 0)
+  const validDays = daily.time
+    .map((date, i) => ({ date, i }))
+    .filter(({ i }) => {
+      const max = daily.temperature_2m_max?.[i];
+      const min = daily.temperature_2m_min?.[i];
+      return max != null && min != null;
+    });
+
   return (
     <div className="px-4 pb-4 overflow-hidden">
       <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] overflow-hidden">
-        {daily.time.map((date, i) => {
-          const label =
-            i === 0 ? t('today')
-            : i === 1 ? t('tomorrow')
-            : DAY_LABELS_FR[new Date(date).getDay()];
+        {validDays.map(({ date, i }) => {
+          const label = dayLabel(date, i, t);
           const rainProb = daily.precipitation_probability_max?.[i] ?? 0;
           const isSelected = i === selectedIndex;
 
@@ -33,28 +44,30 @@ export default function ForecastList({ weatherData, selectedIndex, onSelect, t }
                 isSelected ? 'bg-[var(--color-city-bg)]' : 'hover:bg-[var(--color-surface-2)]'
               }`}
             >
-              {/* Day label — wider to avoid truncation */}
-              <span className="w-16 text-sm font-medium text-[var(--color-text-2)] flex-shrink-0 truncate">
+              {/* Label jour — nowrap pour éviter toute coupure */}
+              <span
+                className="text-sm font-medium text-[var(--color-text-2)] flex-shrink-0"
+                style={{ minWidth: '5rem' }}
+              >
                 {label}
               </span>
+
               <span className="text-lg flex-shrink-0">{getWeatherIcon(daily.weathercode[i])}</span>
-              {/* Rain dot + % */}
+
+              {/* Pastille pluie + % */}
               <div className="flex items-center gap-1 flex-shrink-0">
                 <span
-                  className="inline-block rounded-full flex-shrink-0"
-                  style={{
-                    width: 8,
-                    height: 8,
-                    backgroundColor: rainColor(rainProb),
-                  }}
+                  className="inline-block rounded-full"
+                  style={{ width: 8, height: 8, backgroundColor: rainColor(rainProb) }}
                 />
                 <span className="text-xs font-mono" style={{ color: rainColor(rainProb) }}>
                   {rainProb}%
                 </span>
               </div>
-              {/* Spacer */}
+
               <div className="flex-1" />
-              {/* Temps */}
+
+              {/* Températures */}
               <div className="flex gap-1.5 text-sm font-mono flex-shrink-0">
                 <span className="font-medium text-[var(--color-text)]">
                   ↑{Math.round(daily.temperature_2m_max[i])}°
