@@ -82,6 +82,8 @@ export default {
   'tee.warning': 'Conditions se dégradent à {hour}h',
 
   'my.round': 'Ma partie',
+  'tee.save': 'Enregistrer',
+  'games.upcoming': 'Prochaines parties',
 
   'alert.storm.confirmed': 'Orage confirmé — Ne pas jouer. Quittez le parcours immédiatement.',
   'alert.storm.high':      "Risque élevé d'orage — Surveillez l'évolution des conditions.",

@@ -6,8 +6,9 @@ import MetricsGrid from './MetricsGrid.jsx';
 import HoursTable from './HoursTable.jsx';
 import DaySelector from '../city/DaySelector.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
-import { parseGolfDayData } from '../../utils/weatherUtils.js';
-import { computeGolfScore, SCORE_COLORS } from '../../utils/golfScore.js';
+import { useGames, cleanOldGames } from '../../hooks/useGames.js';
+import { parseGolfDayData, formatWind } from '../../utils/weatherUtils.js';
+import { computeGolfScore } from '../../utils/golfScore.js';
 import { wmoIcon } from '../../utils/weatherUtils.js';
 
 // ─── Storm Alert ──────────────────────────────────────────────────────────────
@@ -33,6 +34,186 @@ function StormAlert({ stormRisk, t }) {
   );
 }
 
+// ─── Score badge color ────────────────────────────────────────────────────────
+function scoreBadgeStyle(score) {
+  if (score >= 75) return { bg: '#EAF3DE', color: '#27500A' };
+  if (score >= 45) return { bg: '#FEF3C7', color: '#92400E' };
+  return              { bg: '#FCEBEB',   color: '#A32D2D' };
+}
+
+// ─── Upcoming Games section ────────────────────────────────────────────────────
+function UpcomingGames({ games, deleteGame, weatherData, windUnit, t }) {
+  if (!games || games.length === 0) return null;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+
+  function getGameScore(game) {
+    if (!weatherData?.hourly) return null;
+    const { hourly } = weatherData;
+    const timeKey = `${game.date}T${String(game.startHour).padStart(2, '0')}:00`;
+    const idx = hourly.time.findIndex((t) => t === timeKey);
+    if (idx < 0) return null;
+    return computeGolfScore({
+      windspeed:   hourly.windspeed_10m[idx],
+      windgusts:   hourly.windgusts_10m[idx],
+      rainProb:    hourly.precipitation_probability[idx],
+      uvIndex:     hourly.uv_index[idx],
+      weathercode: hourly.weathercode[idx],
+    });
+  }
+
+  function getGameWeather(game) {
+    if (!weatherData?.hourly) return null;
+    const { hourly } = weatherData;
+    const timeKey = `${game.date}T${String(game.startHour).padStart(2, '0')}:00`;
+    const idx = hourly.time.findIndex((t) => t === timeKey);
+    if (idx < 0) return null;
+    return {
+      windspeed: hourly.windspeed_10m[idx],
+      rainProb:  hourly.precipitation_probability[idx],
+    };
+  }
+
+  function dateLabel(date, short = false) {
+    if (date === today) return short ? "Auj." : "Aujourd'hui";
+    if (date === tomorrow) return short ? 'Dem.' : 'Demain';
+    const d = new Date(date + 'T12:00:00');
+    return d.toLocaleDateString('fr-FR', { weekday: short ? 'short' : 'long', day: 'numeric', month: short ? undefined : 'short' });
+  }
+
+  function startTimeStr(game) {
+    return `${game.startHour}h${String(game.startMinute).padStart(2, '0')}`;
+  }
+
+  function endTimeStr(game) {
+    const endDec = game.startHour + game.startMinute / 60 + (game.roundType === '9' ? 2.25 : 4.5);
+    const h = Math.floor(endDec);
+    const m = Math.round((endDec % 1) * 60);
+    return `${h}h${String(m).padStart(2, '0')}`;
+  }
+
+  const imminent = games.filter((g) => g.date === today || g.date === tomorrow);
+  const others   = games.filter((g) => g.date !== today && g.date !== tomorrow);
+
+  return (
+    <div className="flex flex-col gap-3 mx-4">
+      <div className="text-xs font-semibold uppercase tracking-widest text-[var(--color-text-3)]">
+        {t('games.upcoming')}
+      </div>
+
+      {/* Parties imminentes — mise en avant */}
+      {imminent.map((game) => {
+        const scoreResult = getGameScore(game);
+        const wx = getGameWeather(game);
+        const score = scoreResult?.score ?? null;
+        const badge = score != null ? scoreBadgeStyle(score) : null;
+        const windLabel = wx ? formatWind(wx.windspeed, windUnit) : '—';
+        const rainLabel = wx ? `${wx.rainProb}%` : '—';
+        return (
+          <div
+            key={game.id}
+            className="rounded-2xl p-3 flex items-center gap-3"
+            style={{ background: '#EAF3DE', border: '1px solid rgba(27,77,62,0.15)' }}
+          >
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+              style={{ backgroundColor: '#1B4D3E' }}
+            >
+              ⛳
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold truncate" style={{ color: '#1B4D3E' }}>
+                {game.courseName}
+              </div>
+              <div className="text-xs mt-0.5" style={{ color: '#2A6B4A' }}>
+                {dateLabel(game.date)} · {startTimeStr(game)} → {endTimeStr(game)} · {game.roundType} trous
+              </div>
+            </div>
+            <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
+              {score != null && badge && (
+                <div
+                  className="text-xs font-medium px-2 py-0.5 rounded-md"
+                  style={{ backgroundColor: 'rgba(27,77,62,0.1)', color: '#1B4D3E' }}
+                >
+                  {scoreResult.icon} {score}
+                </div>
+              )}
+              <div className="text-[10px]" style={{ color: '#3B6D11' }}>
+                {windLabel} · {rainLabel}
+              </div>
+              <button
+                onClick={() => deleteGame(game.id)}
+                className="text-xs opacity-40 mt-0.5"
+                style={{ color: '#1B4D3E' }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Autres parties — liste compacte */}
+      {others.length > 0 && (
+        <div
+          className="rounded-xl overflow-hidden"
+          style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}
+        >
+          {others.map((game) => {
+            const scoreResult = getGameScore(game);
+            const score = scoreResult?.score ?? null;
+            const badge = score != null ? scoreBadgeStyle(score) : null;
+            return (
+              <div
+                key={game.id}
+                className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-0"
+                style={{ borderColor: 'var(--color-border)' }}
+              >
+                <span
+                  className="text-xs font-medium flex-shrink-0"
+                  style={{ width: '4rem', color: 'var(--color-text)' }}
+                >
+                  {dateLabel(game.date, true)}
+                </span>
+                <span
+                  className="text-xs flex-1 truncate"
+                  style={{ color: 'var(--color-text-2)' }}
+                >
+                  {game.courseName}
+                </span>
+                <span
+                  className="text-xs font-mono flex-shrink-0"
+                  style={{ color: 'var(--color-text-3)' }}
+                >
+                  {startTimeStr(game)}
+                </span>
+                {score != null && badge ? (
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
+                    style={{ backgroundColor: badge.bg, color: badge.color }}
+                  >
+                    {score}
+                  </div>
+                ) : (
+                  <div className="w-7 h-7 flex-shrink-0" />
+                )}
+                <button
+                  onClick={() => deleteGame(game.id)}
+                  className="text-base opacity-50 flex-shrink-0"
+                  style={{ color: 'var(--color-text-3)' }}
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Week View ────────────────────────────────────────────────────────────────
 function WeekView({ data, onSelectDay, t }) {
   const [viewMode, setViewMode] = useState('weekend');
@@ -50,7 +231,6 @@ function WeekView({ data, onSelectDay, t }) {
 
   return (
     <div className="mx-4 rounded-2xl p-4" style={{ backgroundColor: '#1B4D3E' }}>
-      {/* Toggle WE / Semaine */}
       <div className="flex gap-2 mb-4">
         {[
           { key: 'weekend', label: t('week.weekend') },
@@ -143,6 +323,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
 
   const activeGolf = golfs.find((g) => g.id === activeId) || golfs[0];
   const { data, loading, error, updatedAt, refresh } = useWeather(activeGolf, 'golf');
+  const { games, addGame, deleteGame } = useGames();
 
   useEffect(() => {
     if (updatedAt && typeof onUpdateTimestamp === 'function') {
@@ -151,8 +332,8 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
   }, [updatedAt, refresh, onUpdateTimestamp]);
 
   const dayData = parseGolfDayData(data, dayIndex);
+  const selectedDate = data?.daily?.time?.[dayIndex] ?? null;
 
-  // Storm risk from current hour data
   const stormRisk = (() => {
     if (!dayData?.hours) return 'none';
     const now = new Date().getHours();
@@ -180,6 +361,23 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
     setShowWeekView(false);
   }
 
+  function handleSaveGame({ startHour, startMin, roundType }) {
+    if (!activeGolf || !selectedDate) return;
+    const newGame = {
+      id: `game_${Date.now()}`,
+      courseId:    activeGolf.id,
+      courseName:  activeGolf.name,
+      courseLabel: activeGolf.label ?? activeGolf.name,
+      date:        selectedDate,
+      startHour,
+      startMinute: startMin,
+      roundType,
+      duration:    roundType === '9' ? 2.25 : 4.5,
+      createdAt:   Date.now(),
+    };
+    addGame(newGame);
+  }
+
   return (
     <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
       <div className="pt-3">
@@ -190,6 +388,15 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
           accentClass="bg-[var(--color-golf)] text-white"
         />
       </div>
+
+      {/* Prochaines parties — au-dessus du reste, visible sans data météo */}
+      <UpcomingGames
+        games={games}
+        deleteGame={deleteGame}
+        weatherData={data}
+        windUnit={windUnit}
+        t={t}
+      />
 
       {loading && !data && <SkeletonGolf />}
 
@@ -218,11 +425,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
 
           <StormAlert stormRisk={stormRisk} t={t} />
 
-          {/* Hero card / Week view — swipeable */}
-          <div
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
+          <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
             {showWeekView ? (
               <WeekView data={data} onSelectDay={handleSelectDay} t={t} />
             ) : (
@@ -231,7 +434,14 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
             <ViewDots active={showWeekView ? 1 : 0} />
           </div>
 
-          <TeeTimeSelector dayData={dayData} windUnit={windUnit} t={t} />
+          <TeeTimeSelector
+            dayData={dayData}
+            windUnit={windUnit}
+            t={t}
+            activeCourse={activeGolf}
+            selectedDate={selectedDate}
+            onSaveGame={handleSaveGame}
+          />
           <MetricsGrid dayData={dayData} windUnit={windUnit} t={t} />
           <HoursTable hours={dayData?.hours} windUnit={windUnit} t={t} />
         </>

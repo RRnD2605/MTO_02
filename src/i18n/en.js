@@ -82,6 +82,8 @@ export default {
   'tee.warning': 'Conditions deteriorating at {hour}h',
 
   'my.round': 'My round',
+  'tee.save': 'Save',
+  'games.upcoming': 'Upcoming rounds',
 
   'alert.storm.confirmed': 'Thunderstorm confirmed — Do not play. Leave the course immediately.',
   'alert.storm.high':      'High storm risk — Monitor conditions closely.',
