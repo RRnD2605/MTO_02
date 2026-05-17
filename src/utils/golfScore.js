@@ -67,14 +67,37 @@ export const SCORE_COLORS = {
 export function getScoreForGame(game, weatherData) {
   if (!weatherData?.hourly) return null;
   const { hourly } = weatherData;
-  const targetTime = `${game.date}T${String(game.startHour).padStart(2, '0')}:00`;
-  const idx = hourly.time.indexOf(targetTime);
-  if (idx < 0) return null;
-  return computeGolfScore({
-    windspeed:   hourly.windspeed_10m[idx],
-    windgusts:   hourly.windgusts_10m[idx],
-    rainProb:    hourly.precipitation_probability[idx] ?? 0,
-    uvIndex:     hourly.uv_index[idx] ?? 0,
-    weathercode: hourly.weathercode[idx] ?? 0,
-  });
+
+  const duration     = game.roundType === '9' ? 2.25 : 4.5;
+  const startDecimal = game.startHour + (game.startMinute ?? 0) / 60;
+  const endDecimal   = startDecimal + duration;
+
+  // Mirror getRoundHourNums in TeeTimeSelector: every hour covered by the round
+  const roundHours = [];
+  for (let h = Math.floor(startDecimal); h <= Math.ceil(endDecimal); h++) {
+    roundHours.push(h);
+  }
+
+  const scores = roundHours
+    .map((h) => {
+      const targetTime = `${game.date}T${String(h).padStart(2, '0')}:00`;
+      const idx = hourly.time.indexOf(targetTime);
+      if (idx < 0) return null;
+      return computeGolfScore({
+        windspeed:   hourly.windspeed_10m[idx],
+        windgusts:   hourly.windgusts_10m[idx],
+        rainProb:    hourly.precipitation_probability[idx] ?? 0,
+        uvIndex:     hourly.uv_index[idx] ?? 0,
+        weathercode: hourly.weathercode[idx] ?? 0,
+      });
+    })
+    .filter(Boolean);
+
+  if (scores.length === 0) return null;
+
+  const avgScore = Math.round(scores.reduce((sum, r) => sum + r.score, 0) / scores.length);
+  if (avgScore >= 75) return { score: avgScore, level: 'ideal', icon: '⛳', labelKey: 'score.ideal', stormRisk: 'none' };
+  if (avgScore >= 45) return { score: avgScore, level: 'good',  icon: '✅', labelKey: 'score.good',  stormRisk: 'none' };
+  if (avgScore >= 25) return { score: avgScore, level: 'hard',  icon: '⚠️', labelKey: 'score.hard',  stormRisk: 'none' };
+  return                     { score: avgScore, level: 'bad',   icon: '⛔', labelKey: 'score.bad',   stormRisk: 'none' };
 }
