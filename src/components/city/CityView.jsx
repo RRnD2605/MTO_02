@@ -90,17 +90,21 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
 }
 
 function MetricsBand({ windspeed, winddirection, windgusts, rainProb, uvMax, windUnit, t }) {
+  const sep = { borderColor: 'rgba(49,60,72,0.1)' };
   return (
-    <div className="mx-4 bg-[var(--color-surface-2)] rounded-xl border border-[var(--color-border)] flex items-stretch">
+    <div
+      className="mx-4 rounded-xl border flex items-stretch"
+      style={{ backgroundColor: '#E8ECF0', borderColor: 'rgba(49,60,72,0.1)' }}
+    >
       {/* Vent */}
-      <div className="flex-1 px-3 py-2.5 border-r border-[var(--color-border)]">
-        <div className="text-[10px] text-[var(--color-text-3)] mb-1">{t('wind')}</div>
+      <div className="flex-1 px-3 py-2.5 border-r" style={sep}>
+        <div className="text-[10px] mb-1" style={{ color: '#8A909A' }}>{t('wind')}</div>
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-sm font-mono font-medium text-[var(--color-city-text)]">
+            <div className="text-sm font-mono font-medium" style={{ color: '#313C48' }}>
               {formatWind(windspeed, windUnit)}
             </div>
-            <div className="text-[10px] text-[var(--color-text-3)]">
+            <div className="text-[10px]" style={{ color: '#8A909A' }}>
               {windDirection(winddirection)} · ↑ {formatWind(windgusts, windUnit)}
             </div>
           </div>
@@ -109,8 +113,8 @@ function MetricsBand({ windspeed, winddirection, windgusts, rainProb, uvMax, win
       </div>
 
       {/* Pluie */}
-      <div className="flex-1 px-3 py-2.5 border-r border-[var(--color-border)]">
-        <div className="text-[10px] text-[var(--color-text-3)] mb-1">{t('rain')}</div>
+      <div className="flex-1 px-3 py-2.5 border-r" style={sep}>
+        <div className="text-[10px] mb-1" style={{ color: '#8A909A' }}>{t('rain')}</div>
         <div className="flex items-center justify-between">
           <div className="text-sm font-mono font-medium text-[var(--color-text)]">
             {rainProb}%
@@ -121,7 +125,7 @@ function MetricsBand({ windspeed, winddirection, windgusts, rainProb, uvMax, win
 
       {/* UV */}
       <div className="flex-1 px-3 py-2.5">
-        <div className="text-[10px] text-[var(--color-text-3)] mb-1">{t('uv')}</div>
+        <div className="text-[10px] mb-1" style={{ color: '#8A909A' }}>{t('uv')}</div>
         <div className="flex items-center justify-between">
           <div className="text-sm font-mono font-medium text-[var(--color-text)]">
             {Math.round(uvMax)}

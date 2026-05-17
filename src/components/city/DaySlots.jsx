@@ -15,24 +15,32 @@ export default function DaySlots({ hours, lang, windUnit }) {
         const slot = hours.find((h) => h.hour === hour);
         const label = lang === 'en' ? labelEn : labelFr;
         if (!slot) return (
-          <div key={key} className="bg-[var(--color-surface-2)] rounded-xl p-2 opacity-30">
+          <div
+            key={key}
+            className="rounded-xl p-2 opacity-30"
+            style={{ backgroundColor: '#E8ECF0', border: '1px solid rgba(49,60,72,0.1)' }}
+          >
             <div className="text-sm mb-1">·</div>
-            <div className="text-xs text-[var(--color-text-3)]">{label}</div>
+            <div className="text-xs" style={{ color: '#8A909A' }}>{label}</div>
           </div>
         );
         return (
-          <div key={key} className="bg-[var(--color-surface-2)] rounded-xl p-2">
+          <div
+            key={key}
+            className="rounded-xl p-2"
+            style={{ backgroundColor: '#E8ECF0', border: '1px solid rgba(49,60,72,0.1)' }}
+          >
             <div className="flex items-center gap-1 mb-1">
               <span className="text-sm">{wmoIcon(slot.weathercode)}</span>
-              <span className="text-xs text-[var(--color-text-3)] truncate">{label}</span>
+              <span className="text-xs truncate" style={{ color: '#8A909A' }}>{label}</span>
             </div>
             <div className="text-sm font-mono font-medium text-[var(--color-text)]">
               {Math.round(slot.temp)}°
             </div>
-            <div className="text-xs text-[var(--color-city-text)] mt-0.5 truncate">
+            <div className="text-xs font-medium mt-0.5 truncate" style={{ color: '#313C48' }}>
               {formatWind(slot.windspeed, windUnit)}
             </div>
-            <div className="text-xs text-[var(--color-text-3)] mt-0.5">
+            <div className="text-xs mt-0.5" style={{ color: '#8A909A' }}>
               <RainDrop prob={slot.rainProb} />{slot.rainProb}%
             </div>
           </div>

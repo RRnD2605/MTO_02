@@ -41,9 +41,8 @@ export default function ForecastList({ weatherData, selectedIndex, onSelect, t }
             <button
               key={date}
               onClick={() => onSelect(i)}
-              className={`w-full flex items-center gap-3 px-3 py-3 border-b last:border-b-0 border-[var(--color-border)] transition-colors text-left ${
-                isSelected ? 'bg-[var(--color-city-bg)]' : 'hover:bg-[var(--color-surface-2)]'
-              }`}
+              className="w-full flex items-center gap-3 px-3 py-3 border-b last:border-b-0 border-[var(--color-border)] transition-colors text-left"
+              style={isSelected ? { backgroundColor: '#E8ECF0' } : undefined}
             >
               {/* Label jour — nowrap pour éviter toute coupure */}
               <span
@@ -78,10 +77,10 @@ export default function ForecastList({ weatherData, selectedIndex, onSelect, t }
 
               {/* Températures */}
               <div className="flex gap-1.5 text-sm font-mono flex-shrink-0">
-                <span className="font-medium text-[var(--color-text)]">
+                <span className="font-medium" style={{ color: '#313C48' }}>
                   ↑{Math.round(daily.temperature_2m_max[i])}°
                 </span>
-                <span className="text-[var(--color-text-3)]">
+                <span style={{ color: '#8A909A' }}>
                   ↓{Math.round(daily.temperature_2m_min[i])}°
                 </span>
               </div>

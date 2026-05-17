@@ -8,15 +8,17 @@ export default function DaySelector({ dates, selectedIndex, onSelect, t }) {
           i === 0 ? t('today')
           : i === 1 ? t('tomorrow')
           : DAY_LABELS_FR[new Date(date).getDay()];
+        const active = i === selectedIndex;
         return (
           <button
             key={date}
             onClick={() => onSelect(i)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              i === selectedIndex
-                ? 'bg-[var(--color-city)] text-white'
-                : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
-            }`}
+            className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors border"
+            style={
+              active
+                ? { backgroundColor: '#313C48', color: 'white', borderColor: 'transparent' }
+                : { backgroundColor: 'transparent', color: 'var(--color-text-2)', borderColor: 'rgba(49,60,72,0.2)' }
+            }
           >
             {label}
           </button>
