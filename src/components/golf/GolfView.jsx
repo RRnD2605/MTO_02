@@ -42,7 +42,20 @@ function scoreBadgeStyle(score) {
 }
 
 // ─── Upcoming Games section ────────────────────────────────────────────────────
-function UpcomingGames({ games, deleteGame, onGameTap, weatherData, windUnit, t }) {
+function ShareIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3"/>
+      <circle cx="6" cy="12" r="3"/>
+      <circle cx="18" cy="19" r="3"/>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+    </svg>
+  );
+}
+
+function UpcomingGames({ games, deleteGame, onGameTap, onShare, weatherData, windUnit, t }) {
   if (!games || games.length === 0) return null;
 
   const today = new Date().toISOString().slice(0, 10);
@@ -144,7 +157,15 @@ function UpcomingGames({ games, deleteGame, onGameTap, weatherData, windUnit, t 
                 {windLabel} · {rainLabel}
               </div>
               <button
-                onClick={() => deleteGame(game.id)}
+                onClick={(e) => { e.stopPropagation(); onShare(game, scoreResult); }}
+                className="opacity-60 mt-0.5"
+                style={{ color: '#1B4D3E' }}
+                aria-label="Partager"
+              >
+                <ShareIcon />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); deleteGame(game.id); }}
                 className="text-xs opacity-40 mt-0.5"
                 style={{ color: '#1B4D3E' }}
               >
@@ -201,7 +222,15 @@ function UpcomingGames({ games, deleteGame, onGameTap, weatherData, windUnit, t 
                   <div className="w-7 h-7 flex-shrink-0" />
                 )}
                 <button
-                  onClick={() => deleteGame(game.id)}
+                  onClick={(e) => { e.stopPropagation(); onShare(game, scoreResult); }}
+                  className="opacity-60 flex-shrink-0"
+                  style={{ color: 'var(--color-text-3)' }}
+                  aria-label="Partager"
+                >
+                  <ShareIcon />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteGame(game.id); }}
                   className="text-base opacity-50 flex-shrink-0"
                   style={{ color: 'var(--color-text-3)' }}
                 >
@@ -323,6 +352,8 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
   const [roundType, setRoundType] = useState('18');
   const [startHour, setStartHour] = useState(9);
   const [startMin, setStartMin] = useState(0);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
 
   const activeGolf = golfs.find((g) => g.id === activeId) || golfs[0];
   const { data, loading, error, updatedAt, refresh } = useWeather(activeGolf, 'golf');
@@ -379,6 +410,46 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
     }, 100);
   }
 
+  function showToast(msg) {
+    setToastMessage(msg);
+    setToastVisible(true);
+    setTimeout(() => setToastVisible(false), 2000);
+  }
+
+  async function handleShare(game, scoreResult) {
+    const startTime = `${String(game.startHour).padStart(2, '0')}h${String(game.startMinute).padStart(2, '0')}`;
+    const endDate = new Date(`${game.date}T${String(game.startHour).padStart(2, '0')}:${String(game.startMinute).padStart(2, '0')}:00`);
+    endDate.setTime(endDate.getTime() + game.duration * 60 * 60 * 1000);
+    const endTime = `${String(endDate.getHours()).padStart(2, '0')}h${String(endDate.getMinutes()).padStart(2, '0')}`;
+    const dateLabel = new Date(game.date + 'T12:00:00').toLocaleDateString('fr-FR', {
+      weekday: 'long', day: 'numeric', month: 'long',
+    });
+    const scoreIcon  = scoreResult?.level === 'ideal' ? '⛳' : scoreResult?.level === 'good' ? '✅' : scoreResult?.level === 'hard' ? '⚠️' : '⛔';
+    const scoreLabel = scoreResult?.level === 'ideal' ? 'Conditions idéales' : scoreResult?.level === 'good' ? 'Bonnes conditions' : scoreResult?.level === 'hard' ? 'Conditions difficiles' : 'Déconseillé';
+    const message = [
+      `⛳ Golf — ${game.courseName}`,
+      `📅 ${dateLabel}`,
+      `🕐 Départ ${startTime} · ${game.roundType} trous · Arrivée ${endTime}`,
+      `${scoreIcon} ${scoreLabel} (${scoreResult?.score ?? '—'}/100)`,
+      ``,
+      `Préparé avec MTO Outdoor 🌤️`,
+    ].join('\n');
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Golf — ${game.courseName}`, text: message });
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error(err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(message);
+        showToast('Copié dans le presse-papiers');
+      } catch {
+        showToast('Partage non disponible');
+      }
+    }
+  }
+
   function handleSaveGame({ startHour, startMin, roundType }) {
     if (!activeGolf || !selectedDate) return;
     const newGame = {
@@ -412,6 +483,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
         games={games}
         deleteGame={deleteGame}
         onGameTap={handleGameTap}
+        onShare={handleShare}
         weatherData={data}
         windUnit={windUnit}
         t={t}
@@ -473,6 +545,17 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
           <HoursTable hours={dayData?.hours} windUnit={windUnit} t={t} />
         </>
       )}
+
+      <Toast message={toastMessage} visible={toastVisible} />
+    </div>
+  );
+}
+
+function Toast({ message, visible }) {
+  if (!visible) return null;
+  return (
+    <div className="fixed bottom-20 left-1/2 -translate-x-1/2 bg-[#313C48] text-white text-sm px-4 py-2 rounded-full shadow-lg z-50">
+      {message}
     </div>
   );
 }

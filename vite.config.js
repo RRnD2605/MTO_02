@@ -9,11 +9,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons/*.svg'],
       manifest: {
-        name: 'Météo Golf',
-        short_name: 'MétéoGolf',
-        description: 'Météo spécialisée pour les golfeurs',
+        name: 'MTO Outdoor',
+        short_name: 'MTO Outdoor',
+        description: 'Météo pour vos activités outdoor — Golf, Rando, VTT',
         theme_color: '#1B4D3E',
-        background_color: '#F5F4F1',
+        background_color: '#F2F5EE',
         display: 'standalone',
         start_url: '/',
         icons: [
