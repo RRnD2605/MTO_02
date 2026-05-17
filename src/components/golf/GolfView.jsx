@@ -181,21 +181,12 @@ function WeekView({ data, onSelectDay, t }) {
       )}
 
       {visibleDays.map(({ date, i, dayName }) => {
-        const noonIdx = hourly.time.findIndex((t) => t === `${date}T09:00`);
-        const score = noonIdx >= 0 ? computeGolfScore({
-          windspeed:   hourly.windspeed_10m[noonIdx],
-          windgusts:   hourly.windgusts_10m[noonIdx],
-          rainProb:    hourly.precipitation_probability[noonIdx],
-          uvIndex:     hourly.uv_index[noonIdx],
-          weathercode: hourly.weathercode[noonIdx],
-        }) : null;
+        const score = computeDayGolfScore(hourly, date);
 
-        const bgClass = score
-          ? score.level === 'ideal' ? 'bg-green-400/20 text-green-300'
-          : score.level === 'good'  ? 'bg-yellow-400/20 text-yellow-300'
-          : score.level === 'hard'  ? 'bg-orange-400/20 text-orange-300'
-          :                           'bg-red-400/20 text-red-300'
-          : '';
+        const scoreBg = !score ? '' :
+          score.level === 'ideal' ? 'bg-[#EAF3DE] text-[#27500A]' :
+          score.level === 'good'  ? 'bg-[#FEF3C7] text-[#92400E]' :
+                                    'bg-[#FCEBEB] text-[#A32D2D]';
 
         return (
           <button
@@ -208,10 +199,13 @@ function WeekView({ data, onSelectDay, t }) {
             <span className="text-white/60 text-xs flex-shrink-0">
               ↑{Math.round(daily.temperature_2m_max[i])}° ↓{Math.round(daily.temperature_2m_min[i])}°
             </span>
+            <span className="text-white/50 text-xs flex-shrink-0">
+              💨 {Math.round(daily.windspeed_10m_max[i])} km/h
+            </span>
             <div className="flex-1" />
             {score && (
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${bgClass}`}>
-                {score.icon} {score.score}
+              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${scoreBg}`}>
+                {score.score}
               </span>
             )}
           </button>
