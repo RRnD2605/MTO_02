@@ -64,7 +64,35 @@ export const SCORE_COLORS = {
   bad:   'var(--color-bad)',
 };
 
-export function getScoreForGame(game, weatherData) {
+export function computeDayGolfScore(hourlyData, dateStr) {
+  if (!hourlyData || !dateStr) return null;
+  const golfHours = [9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+  const scores = golfHours
+    .map((h) => {
+      const targetTime = `${dateStr}T${String(h).padStart(2, '0')}:00`;
+      const idx = hourlyData.time.indexOf(targetTime);
+      if (idx < 0) return null;
+      return computeGolfScore({
+        windspeed:   hourlyData.windspeed_10m[idx],
+        windgusts:   hourlyData.windgusts_10m[idx],
+        rainProb:    hourlyData.precipitation_probability[idx] ?? 0,
+        uvIndex:     hourlyData.uv_index[idx] ?? 0,
+        weathercode: hourlyData.weathercode[idx] ?? 0,
+      });
+    })
+    .filter(Boolean);
+
+  if (scores.length === 0) return null;
+
+  const avgScore = Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length);
+  if (avgScore >= 75) return { score: avgScore, level: 'ideal', icon: '⛳', labelKey: 'score.ideal' };
+  if (avgScore >= 45) return { score: avgScore, level: 'good',  icon: '✅', labelKey: 'score.good'  };
+  if (avgScore >= 25) return { score: avgScore, level: 'hard',  icon: '⚠️', labelKey: 'score.hard'  };
+  return                     { score: avgScore, level: 'bad',   icon: '⛔', labelKey: 'score.bad'   };
+}
+
+
   if (!weatherData?.hourly) return null;
   const { hourly } = weatherData;
 

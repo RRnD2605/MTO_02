@@ -8,7 +8,7 @@ import DaySelector from '../city/DaySelector.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { useGames } from '../../hooks/useGames.js';
 import { parseGolfDayData, formatWind, getInitialDayIndex } from '../../utils/weatherUtils.js';
-import { computeGolfScore, getScoreForGame } from '../../utils/golfScore.js';
+import { computeGolfScore, getScoreForGame, computeDayGolfScore } from '../../utils/golfScore.js';
 import { wmoIcon } from '../../utils/weatherUtils.js';
 
 // ─── Storm Alert ──────────────────────────────────────────────────────────────
@@ -55,7 +55,7 @@ function ShareIcon() {
   );
 }
 
-function UpcomingGames({ games, deleteGame, onGameTap, onShare, weatherData, t }) {
+function UpcomingGames({ games, deleteGame, onGameTap, onShare, t }) {
   if (!games || games.length === 0) return null;
 
   const today    = new Date().toISOString().slice(0, 10);
@@ -82,8 +82,7 @@ function UpcomingGames({ games, deleteGame, onGameTap, onShare, weatherData, t }
         style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}
       >
         {games.map((game) => {
-          const scoreResult = getScoreForGame(game, weatherData);
-          const score = scoreResult?.score ?? null;
+          const score = game.savedScore ?? null;
           const badge = score != null ? scoreBadgeStyle(score) : null;
           return (
             <div
@@ -121,7 +120,7 @@ function UpcomingGames({ games, deleteGame, onGameTap, onShare, weatherData, t }
                 <div className="w-7 h-7 flex-shrink-0" />
               )}
               <button
-                onClick={(e) => { e.stopPropagation(); onShare(game, scoreResult); }}
+                onClick={(e) => { e.stopPropagation(); onShare(game, { score: game.savedScore, level: game.savedScoreLevel }); }}
                 className="opacity-60 flex-shrink-0"
                 style={{ color: 'var(--color-text-3)' }}
                 aria-label="Partager"
@@ -265,6 +264,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
 
   const dayData = parseGolfDayData(data, dayIndex);
   const selectedDate = data?.daily?.time?.[dayIndex] ?? null;
+  const heroScore = (data && selectedDate) ? computeDayGolfScore(data.hourly, selectedDate) : null;
 
   const stormRisk = (() => {
     if (!dayData?.hours) return 'none';
@@ -362,6 +362,9 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
       duration:    roundType === '9' ? 2.25 : 4.5,
       createdAt:   Date.now(),
     };
+    const scoreResult = getScoreForGame(newGame, data);
+    newGame.savedScore = scoreResult?.score ?? null;
+    newGame.savedScoreLevel = scoreResult?.level ?? null;
     addGame(newGame);
   }
 
@@ -382,7 +385,6 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
         deleteGame={deleteGame}
         onGameTap={handleGameTap}
         onShare={handleShare}
-        weatherData={data}
         t={t}
       />
 
@@ -417,7 +419,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
             {showWeekView ? (
               <WeekView data={data} onSelectDay={handleSelectDay} t={t} />
             ) : (
-              <GolfHeroCard dayData={dayData} lang={lang} windUnit={windUnit} t={t} activeCourse={activeGolf} selectedDate={selectedDate} />
+              <GolfHeroCard dayData={dayData} lang={lang} windUnit={windUnit} t={t} activeCourse={activeGolf} selectedDate={selectedDate} heroScore={heroScore} />
             )}
             <ViewDots active={showWeekView ? 1 : 0} />
           </div>

@@ -1,5 +1,4 @@
 import { getWeatherIcon, getWeatherLabel } from '../../utils/weatherUtils.js';
-import { computeGolfScore } from '../../utils/golfScore.js';
 
 function dayLabelFromDate(date) {
   if (!date) return '';
@@ -10,48 +9,32 @@ function dayLabelFromDate(date) {
   return new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric' });
 }
 
-export default function GolfHeroCard({ dayData, lang, windUnit, t, activeCourse, selectedDate }) {
+export default function GolfHeroCard({ dayData, lang, windUnit, t, activeCourse, selectedDate, heroScore }) {
   if (!dayData) return null;
   const { maxTemp, minTemp, weathercode, currentTemp } = dayData;
 
-  const currentHour = new Date().getHours();
-  const currentHourData =
-    dayData.hours?.find((h) => h.hour === currentHour) ||
+  // Wind/gusts/rain detail: use noon (12h) as representative hour for the day
+  const detailHour =
+    dayData.hours?.find((h) => h.hour === 12) ||
     dayData.hours?.find((h) => h.hour === 10) ||
     dayData.hours?.[0];
 
-  const scoreInputs = currentHourData
-    ? {
-        windspeed:   currentHourData.windspeed,
-        windgusts:   currentHourData.windgusts,
-        rainProb:    currentHourData.rainProb,
-        uvIndex:     currentHourData.uvIndex,
-        weathercode: currentHourData.weathercode,
-      }
-    : {
-        windspeed:   dayData.windspeed ?? 0,
-        windgusts:   (dayData.windspeed ?? 0) * 1.3,
-        rainProb:    dayData.rainProb ?? 0,
-        uvIndex:     dayData.uvMax ?? 0,
-        weathercode: dayData.weathercode ?? 0,
-      };
-
-  const scoreResult  = computeGolfScore(scoreInputs);
   const displayTemp  = currentTemp ?? maxTemp;
   const icon         = getWeatherIcon(weathercode);
   const weatherDesc  = getWeatherLabel(weathercode, lang);
-  const scorePercent = Math.min(99, Math.max(1, scoreResult.score));
-  const windLabel    = `${Math.round(scoreInputs.windspeed)} km/h`;
-  const gustLabel    = `${Math.round(scoreInputs.windgusts)} km/h`;
-  const rainLabel    = `${scoreInputs.rainProb}%`;
+  const scoreResult  = heroScore;
+  const scorePercent = scoreResult ? Math.min(99, Math.max(1, scoreResult.score)) : null;
+  const windLabel    = detailHour ? `${Math.round(detailHour.windspeed)} km/h` : '—';
+  const gustLabel    = detailHour ? `${Math.round(detailHour.windgusts)} km/h` : '—';
+  const rainLabel    = detailHour ? `${detailHour.rainProb}%` : '—';
   const courseName   = activeCourse?.name ?? '';
   const dayLabel     = dayLabelFromDate(selectedDate);
 
   const levelLabel =
-    scoreResult.level === 'ideal' ? 'Conditions idéales' :
-    scoreResult.level === 'good'  ? 'Bonnes conditions'  :
-    scoreResult.level === 'hard'  ? 'Conditions difficiles' :
-                                    'Déconseillé';
+    scoreResult?.level === 'ideal' ? 'Conditions idéales' :
+    scoreResult?.level === 'good'  ? 'Bonnes conditions'  :
+    scoreResult?.level === 'hard'  ? 'Conditions difficiles' :
+                                     'Déconseillé';
 
   return (
     <div className="bg-[#1B4D3E] rounded-2xl p-4 mx-4 text-white">
@@ -80,38 +63,42 @@ export default function GolfHeroCard({ dayData, lang, windUnit, t, activeCourse,
       </div>
 
       {/* Score + label */}
-      <div className="flex items-center gap-2 mb-1">
-        <div
-          className="px-2.5 py-1 rounded-md text-[12px] font-medium border"
-          style={{
-            backgroundColor: 'rgba(168,230,207,0.18)',
-            color: '#a8e6cf',
-            borderColor: 'rgba(168,230,207,0.3)',
-          }}
-        >
-          {scoreResult.icon} {levelLabel}
-        </div>
-        <div className="text-[26px] font-light text-white ml-auto">{scoreResult.score}</div>
-      </div>
-      <div className="text-[11px] mb-2" style={{ opacity: 0.5 }}>
-        {windLabel} · ↑{gustLabel} · 💧{rainLabel}
-      </div>
+      {scoreResult && (
+        <>
+          <div className="flex items-center gap-2 mb-1">
+            <div
+              className="px-2.5 py-1 rounded-md text-[12px] font-medium border"
+              style={{
+                backgroundColor: 'rgba(168,230,207,0.18)',
+                color: '#a8e6cf',
+                borderColor: 'rgba(168,230,207,0.3)',
+              }}
+            >
+              {scoreResult.icon} {levelLabel}
+            </div>
+            <div className="text-[26px] font-light text-white ml-auto">{scoreResult.score}</div>
+          </div>
+          <div className="text-[11px] mb-2" style={{ opacity: 0.5 }}>
+            {windLabel} · ↑{gustLabel} · 💧{rainLabel}
+          </div>
 
-      {/* Jauge 4 zones */}
-      <div className="h-1 rounded-full flex relative overflow-visible">
-        <div className="flex-1 rounded-l-full" style={{ backgroundColor: '#D94F4F' }} />
-        <div className="flex-1" style={{ backgroundColor: '#D4891A' }} />
-        <div className="flex-1" style={{ backgroundColor: '#8BBF3A' }} />
-        <div className="flex-1 rounded-r-full" style={{ backgroundColor: '#52A855' }} />
-        <div
-          style={{ left: `${scorePercent}%` }}
-          className="absolute top-[-2px] w-[2px] h-[8px] bg-white rounded-sm -translate-x-1/2"
-        />
-      </div>
-      <div className="flex justify-between mt-1">
-        <span className="text-[9px]" style={{ opacity: 0.4 }}>Déconseillé</span>
-        <span className="text-[9px]" style={{ opacity: 0.4 }}>Conditions idéales</span>
-      </div>
+          {/* Jauge 4 zones */}
+          <div className="h-1 rounded-full flex relative overflow-visible">
+            <div className="flex-1 rounded-l-full" style={{ backgroundColor: '#D94F4F' }} />
+            <div className="flex-1" style={{ backgroundColor: '#D4891A' }} />
+            <div className="flex-1" style={{ backgroundColor: '#8BBF3A' }} />
+            <div className="flex-1 rounded-r-full" style={{ backgroundColor: '#52A855' }} />
+            <div
+              style={{ left: `${scorePercent}%` }}
+              className="absolute top-[-2px] w-[2px] h-[8px] bg-white rounded-sm -translate-x-1/2"
+            />
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-[9px]" style={{ opacity: 0.4 }}>Déconseillé</span>
+            <span className="text-[9px]" style={{ opacity: 0.4 }}>Conditions idéales</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
