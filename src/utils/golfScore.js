@@ -85,11 +85,15 @@ export function computeDayGolfScore(hourlyData, dateStr) {
 
   if (scores.length === 0) return null;
 
-  const avgScore = Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length);
-  if (avgScore >= 75) return { score: avgScore, level: 'ideal', icon: '⛳', labelKey: 'score.ideal' };
-  if (avgScore >= 45) return { score: avgScore, level: 'good',  icon: '✅', labelKey: 'score.good'  };
-  if (avgScore >= 25) return { score: avgScore, level: 'hard',  icon: '⚠️', labelKey: 'score.hard'  };
-  return                     { score: avgScore, level: 'bad',   icon: '⛔', labelKey: 'score.bad'   };
+  const sorted = [...scores].sort((a, b) => a.score - b.score);
+  const avg   = scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
+  const worst = sorted[0].score;
+  const finalScore = Math.round(avg * 0.7 + worst * 0.3);
+
+  if (finalScore >= 75) return { score: finalScore, level: 'ideal', icon: '⛳', labelKey: 'score.ideal' };
+  if (finalScore >= 45) return { score: finalScore, level: 'good',  icon: '✅', labelKey: 'score.good'  };
+  if (finalScore >= 25) return { score: finalScore, level: 'hard',  icon: '⚠️', labelKey: 'score.hard'  };
+  return                       { score: finalScore, level: 'bad',   icon: '⛔', labelKey: 'score.bad'   };
 }
 
 export function getScoreForGame(game, weatherData) {

@@ -99,24 +99,16 @@ export default function TeeTimeSelector({
 
   return (
     <div className="mx-4 rounded-xl bg-[var(--color-golf-light)] p-4">
-      <div className="text-xs font-semibold uppercase tracking-wide text-[var(--color-golf-text)] mb-3">
-        {t('my.round')}
+      {/* En-tête compact : Ma Partie · parcours · date · départ */}
+      <div className="flex items-center gap-2 mb-3 px-1">
+        <span className="text-[11px] font-semibold text-[#1B4D3E] tracking-wider uppercase flex-shrink-0">
+          Ma Partie
+        </span>
+        <span className="flex-shrink-0" style={{ color: '#3B6D11', opacity: 0.4 }}>·</span>
+        <span className="text-sm font-medium truncate" style={{ color: '#1B4D3E' }}>
+          {activeCourse?.name} · {dayLabelFromDate(selectedDate)} · Départ {startHour}h{String(startMin).padStart(2, '0')}
+        </span>
       </div>
-
-      {/* Context block: parcours + date + heure de départ */}
-      {activeCourse && selectedDate && (
-        <div
-          className="rounded-xl px-4 py-2.5 mb-3 border"
-          style={{ background: '#EAF3DE', borderColor: 'rgba(27,77,62,0.12)' }}
-        >
-          <div className="text-sm font-semibold" style={{ color: '#1B4D3E' }}>
-            {activeCourse.name}
-          </div>
-          <div className="text-xs mt-0.5" style={{ color: '#3B6D11' }}>
-            {dayLabelFromDate(selectedDate)} · Départ {startHour}h{String(startMin).padStart(2, '0')}
-          </div>
-        </div>
-      )}
 
       {/* Toggle 9 / 18 trous */}
       <div className="flex rounded-lg overflow-hidden border border-[var(--color-golf)] mb-4">

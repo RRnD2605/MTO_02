@@ -379,15 +379,6 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
         />
       </div>
 
-      {/* Prochaines parties — au-dessus du reste, visible sans data météo */}
-      <UpcomingGames
-        games={games}
-        deleteGame={deleteGame}
-        onGameTap={handleGameTap}
-        onShare={handleShare}
-        t={t}
-      />
-
       {loading && !data && <SkeletonGolf />}
 
       {error && !data && (
@@ -423,6 +414,16 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
             )}
             <ViewDots active={showWeekView ? 1 : 0} />
           </div>
+
+          {games.length > 0 && (
+            <UpcomingGames
+              games={games}
+              deleteGame={deleteGame}
+              onGameTap={handleGameTap}
+              onShare={handleShare}
+              t={t}
+            />
+          )}
 
           <div id="ma-partie-section">
             <TeeTimeSelector
