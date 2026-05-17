@@ -92,7 +92,7 @@ export function computeDayGolfScore(hourlyData, dateStr) {
   return                     { score: avgScore, level: 'bad',   icon: '⛔', labelKey: 'score.bad'   };
 }
 
-
+export function getScoreForGame(game, weatherData) {
   if (!weatherData?.hourly) return null;
   const { hourly } = weatherData;
 
