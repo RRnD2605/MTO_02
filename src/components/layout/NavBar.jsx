@@ -1,5 +1,5 @@
 const TAB_COLORS = {
-  cities:   '#0E7490',
+  cities:   '#313C48',
   golf:     '#1B4D3E',
   rando:    '#27500A',
   vtt:      '#8B3A0F',
