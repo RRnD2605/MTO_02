@@ -59,20 +59,20 @@ export default function GolfHeroCard({ dayData, lang, windUnit, t, activeCourse,
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
           {/* Température */}
-          <div className="font-light leading-none" style={{ fontSize: 42, letterSpacing: '-0.03em' }}>
+          <div className="font-light leading-none" style={{ fontSize: 48, letterSpacing: '-0.03em' }}>
             {Math.round(displayTemp)}<sup className="text-lg align-super font-normal">°</sup>
           </div>
           {/* Infos */}
           <div>
             {(courseName || dayLabel) && (
-              <div className="text-[10px] mb-0.5" style={{ opacity: 0.45 }}>
+              <div className="text-[11px] mb-0.5" style={{ opacity: 0.45 }}>
                 {[courseName, dayLabel].filter(Boolean).join(' · ')}
               </div>
             )}
-            <div className="text-xs" style={{ opacity: 0.65 }}>{weatherDesc}</div>
-            <div className="flex gap-2 text-xs font-medium mt-0.5">
+            <div className="text-sm" style={{ opacity: 0.65 }}>{weatherDesc}</div>
+            <div className="flex gap-2 text-sm font-medium mt-0.5">
               <span style={{ color: '#9DB8CC' }}>↑ {Math.round(maxTemp)}°</span>
-              <span style={{ opacity: 0.5 }}>↓ {Math.round(minTemp)}°</span>
+              <span style={{ color: 'rgba(255,255,255,0.5)' }}>↓ {Math.round(minTemp)}°</span>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function GolfHeroCard({ dayData, lang, windUnit, t, activeCourse,
       {/* Score + label */}
       <div className="flex items-center gap-2 mb-1">
         <div
-          className="px-2.5 py-1 rounded-md text-[11px] font-medium border"
+          className="px-2.5 py-1 rounded-md text-[12px] font-medium border"
           style={{
             backgroundColor: 'rgba(168,230,207,0.18)',
             color: '#a8e6cf',
@@ -91,9 +91,9 @@ export default function GolfHeroCard({ dayData, lang, windUnit, t, activeCourse,
         >
           {scoreResult.icon} {levelLabel}
         </div>
-        <div className="text-[22px] font-light text-white ml-auto">{scoreResult.score}</div>
+        <div className="text-[26px] font-light text-white ml-auto">{scoreResult.score}</div>
       </div>
-      <div className="text-[10px] mb-2" style={{ opacity: 0.5 }}>
+      <div className="text-[11px] mb-2" style={{ opacity: 0.5 }}>
         {windLabel} · ↑{gustLabel} · 💧{rainLabel}
       </div>
 
@@ -104,13 +104,13 @@ export default function GolfHeroCard({ dayData, lang, windUnit, t, activeCourse,
         <div className="flex-1" style={{ backgroundColor: '#8BBF3A' }} />
         <div className="flex-1 rounded-r-full" style={{ backgroundColor: '#52A855' }} />
         <div
-          className="absolute w-0.5 bg-white rounded-sm"
-          style={{ top: -2, height: 8, left: `${scorePercent}%`, transform: 'translateX(-50%)' }}
+          style={{ left: `${scorePercent}%` }}
+          className="absolute top-[-2px] w-[2px] h-[8px] bg-white rounded-sm -translate-x-1/2"
         />
       </div>
       <div className="flex justify-between mt-1">
-        <span className="text-[8px]" style={{ opacity: 0.4 }}>Déconseillé</span>
-        <span className="text-[8px]" style={{ opacity: 0.4 }}>Conditions idéales</span>
+        <span className="text-[9px]" style={{ opacity: 0.4 }}>Déconseillé</span>
+        <span className="text-[9px]" style={{ opacity: 0.4 }}>Conditions idéales</span>
       </div>
     </div>
   );
