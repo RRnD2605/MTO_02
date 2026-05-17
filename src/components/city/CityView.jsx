@@ -26,7 +26,7 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
   const dayData = useMemo(() => parseDayData(data, dayIndex), [data, dayIndex]);
 
   return (
-    <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
+    <div className="flex flex-col gap-2 pb-20 overflow-hidden bg-[var(--color-bg)]">
       <div className="pt-3">
         <LocationTabs
           locations={cities}

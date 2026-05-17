@@ -9,8 +9,8 @@ export default function CityHeroCard({ dayData, lang, t }) {
   const label = getWeatherLabel(weathercode, lang);
 
   return (
-    <div className="px-4 py-6">
-      <div className="bg-[var(--color-surface-2)] rounded-2xl p-6">
+    <div className="px-4 py-1">
+      <div className="bg-[var(--color-surface-2)] rounded-2xl p-4">
         <div className="flex items-start justify-between">
           <div>
             <div
