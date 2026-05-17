@@ -120,7 +120,7 @@ function UpcomingGames({ games, deleteGame, onGameTap, onShare, t }) {
                 <div className="w-7 h-7 flex-shrink-0" />
               )}
               <button
-                onClick={(e) => { e.stopPropagation(); onShare(game, { score: game.savedScore, level: game.savedScoreLevel }); }}
+                onClick={(e) => { e.stopPropagation(); onShare(game); }}
                 className="opacity-60 flex-shrink-0"
                 style={{ color: 'var(--color-text-3)' }}
                 aria-label="Partager"
@@ -314,24 +314,49 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
     setTimeout(() => setToastVisible(false), 2000);
   }
 
-  async function handleShare(game, scoreResult) {
+  async function handleShare(game) {
     const startTime = `${String(game.startHour).padStart(2, '0')}h${String(game.startMinute).padStart(2, '0')}`;
-    const endDate = new Date(`${game.date}T${String(game.startHour).padStart(2, '0')}:${String(game.startMinute).padStart(2, '0')}:00`);
-    endDate.setTime(endDate.getTime() + game.duration * 60 * 60 * 1000);
-    const endTime = `${String(endDate.getHours()).padStart(2, '0')}h${String(endDate.getMinutes()).padStart(2, '0')}`;
     const dateLabel = new Date(game.date + 'T12:00:00').toLocaleDateString('fr-FR', {
       weekday: 'long', day: 'numeric', month: 'long',
     });
-    const scoreIcon  = scoreResult?.level === 'ideal' ? '⛳' : scoreResult?.level === 'good' ? '✅' : scoreResult?.level === 'hard' ? '⚠️' : '⛔';
-    const scoreLabel = scoreResult?.level === 'ideal' ? 'Conditions idéales' : scoreResult?.level === 'good' ? 'Bonnes conditions' : scoreResult?.level === 'hard' ? 'Conditions difficiles' : 'Déconseillé';
+    const scoreLabel =
+      game.savedScoreLevel === 'ideal' ? 'Conditions idéales' :
+      game.savedScoreLevel === 'good'  ? 'Bonnes conditions'  :
+      game.savedScoreLevel === 'hard'  ? 'Conditions difficiles' : 'Déconseillé';
+
+    const duration  = game.roundType === '9' ? 2.25 : 4.5;
+    const gameHours = [];
+    for (let h = game.startHour; h <= Math.ceil(game.startHour + duration); h++) {
+      gameHours.push(Math.floor(h));
+    }
+    const temps = [], winds = [], gusts = [], rains = [];
+    gameHours.forEach((h) => {
+      const targetTime = `${game.date}T${String(h).padStart(2, '0')}:00`;
+      const idx = data?.hourly?.time?.indexOf(targetTime);
+      if (idx >= 0) {
+        temps.push(data.hourly.temperature_2m[idx]);
+        winds.push(data.hourly.windspeed_10m[idx]);
+        gusts.push(data.hourly.windgusts_10m[idx] ?? data.hourly.windspeed_10m[idx] * 1.3);
+        rains.push(data.hourly.precipitation_probability[idx] ?? 0);
+      }
+    });
+    const minTemp = temps.length ? Math.round(Math.min(...temps)) : '—';
+    const maxTemp = temps.length ? Math.round(Math.max(...temps)) : '—';
+    const avgWind = winds.length ? Math.round(winds.reduce((a, b) => a + b, 0) / winds.length) : '—';
+    const avgGusts = gusts.length ? Math.round(gusts.reduce((a, b) => a + b, 0) / gusts.length) : '—';
+    const avgRain  = rains.length ? Math.round(rains.reduce((a, b) => a + b, 0) / rains.length) : '—';
+
     const message = [
       `⛳ Golf — ${game.courseName}`,
       `📅 ${dateLabel}`,
-      `🕐 Départ ${startTime} · ${game.roundType} trous · Arrivée ${endTime}`,
-      `${scoreIcon} ${scoreLabel} (${scoreResult?.score ?? '—'}/100)`,
+      `🕐 Départ ${startTime} · ${game.roundType} trous`,
+      `${scoreLabel} (${game.savedScore}/100)`,
+      `🌡️ ${minTemp}° / ${maxTemp}° · 💨 ${avgWind} km/h ↑${avgGusts} km/h · 💧 ${avgRain}%`,
       ``,
       `Préparé avec MTO Outdoor 🌤️`,
+      `https://mto-02.vercel.app`,
     ].join('\n');
+
     if (navigator.share) {
       try {
         await navigator.share({ title: `Golf — ${game.courseName}`, text: message });
@@ -339,12 +364,8 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
         if (err.name !== 'AbortError') console.error(err);
       }
     } else {
-      try {
-        await navigator.clipboard.writeText(message);
-        showToast('Copié dans le presse-papiers');
-      } catch {
-        showToast('Partage non disponible');
-      }
+      await navigator.clipboard.writeText(message);
+      showToast('Copié dans le presse-papiers');
     }
   }
 
