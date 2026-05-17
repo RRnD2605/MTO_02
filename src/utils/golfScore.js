@@ -63,3 +63,18 @@ export const SCORE_COLORS = {
   hard:  'var(--color-hard)',
   bad:   'var(--color-bad)',
 };
+
+export function getScoreForGame(game, weatherData) {
+  if (!weatherData?.hourly) return null;
+  const { hourly } = weatherData;
+  const targetTime = `${game.date}T${String(game.startHour).padStart(2, '0')}:00`;
+  const idx = hourly.time.indexOf(targetTime);
+  if (idx < 0) return null;
+  return computeGolfScore({
+    windspeed:   hourly.windspeed_10m[idx],
+    windgusts:   hourly.windgusts_10m[idx],
+    rainProb:    hourly.precipitation_probability[idx] ?? 0,
+    uvIndex:     hourly.uv_index[idx] ?? 0,
+    weathercode: hourly.weathercode[idx] ?? 0,
+  });
+}

@@ -8,7 +8,7 @@ import DaySelector from '../city/DaySelector.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { useGames } from '../../hooks/useGames.js';
 import { parseGolfDayData, formatWind, getInitialDayIndex } from '../../utils/weatherUtils.js';
-import { computeGolfScore } from '../../utils/golfScore.js';
+import { computeGolfScore, getScoreForGame } from '../../utils/golfScore.js';
 import { wmoIcon } from '../../utils/weatherUtils.js';
 
 // ─── Storm Alert ──────────────────────────────────────────────────────────────
@@ -55,192 +55,90 @@ function ShareIcon() {
   );
 }
 
-function UpcomingGames({ games, deleteGame, onGameTap, onShare, weatherData, windUnit, t }) {
+function UpcomingGames({ games, deleteGame, onGameTap, onShare, weatherData, t }) {
   if (!games || games.length === 0) return null;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today    = new Date().toISOString().slice(0, 10);
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
 
-  function getGameScore(game) {
-    if (!weatherData?.hourly) return null;
-    const { hourly } = weatherData;
-    const timeKey = `${game.date}T${String(game.startHour).padStart(2, '0')}:00`;
-    const idx = hourly.time.findIndex((t) => t === timeKey);
-    if (idx < 0) return null;
-    return computeGolfScore({
-      windspeed:   hourly.windspeed_10m[idx],
-      windgusts:   hourly.windgusts_10m[idx],
-      rainProb:    hourly.precipitation_probability[idx],
-      uvIndex:     hourly.uv_index[idx],
-      weathercode: hourly.weathercode[idx],
-    });
-  }
-
-  function getGameWeather(game) {
-    if (!weatherData?.hourly) return null;
-    const { hourly } = weatherData;
-    const timeKey = `${game.date}T${String(game.startHour).padStart(2, '0')}:00`;
-    const idx = hourly.time.findIndex((t) => t === timeKey);
-    if (idx < 0) return null;
-    return {
-      windspeed: hourly.windspeed_10m[idx],
-      rainProb:  hourly.precipitation_probability[idx],
-    };
-  }
-
-  function dateLabel(date, short = false) {
-    if (date === today) return short ? "Auj." : "Aujourd'hui";
-    if (date === tomorrow) return short ? 'Dem.' : 'Demain';
+  function dateLabel(date) {
+    if (date === today)    return "Auj.";
+    if (date === tomorrow) return 'Dem.';
     const d = new Date(date + 'T12:00:00');
-    return d.toLocaleDateString('fr-FR', { weekday: short ? 'short' : 'long', day: 'numeric', month: short ? undefined : 'short' });
+    return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
   }
 
   function startTimeStr(game) {
     return `${game.startHour}h${String(game.startMinute).padStart(2, '0')}`;
   }
 
-  function endTimeStr(game) {
-    const endDec = game.startHour + game.startMinute / 60 + (game.roundType === '9' ? 2.25 : 4.5);
-    const h = Math.floor(endDec);
-    const m = Math.round((endDec % 1) * 60);
-    return `${h}h${String(m).padStart(2, '0')}`;
-  }
-
-  const imminent = games.filter((g) => g.date === today || g.date === tomorrow);
-  const others   = games.filter((g) => g.date !== today && g.date !== tomorrow);
-
   return (
-    <div className="flex flex-col gap-3 mx-4">
+    <div className="flex flex-col gap-2 mx-4">
       <div className="text-xs font-semibold uppercase tracking-widest text-[var(--color-text-3)]">
         {t('games.upcoming')}
       </div>
-
-      {/* Parties imminentes — mise en avant */}
-      {imminent.map((game) => {
-        const scoreResult = getGameScore(game);
-        const wx = getGameWeather(game);
-        const score = scoreResult?.score ?? null;
-        const badge = score != null ? scoreBadgeStyle(score) : null;
-        const windLabel = wx ? formatWind(wx.windspeed, windUnit) : '—';
-        const rainLabel = wx ? `${wx.rainProb}%` : '—';
-        return (
-          <div
-            key={game.id}
-            onClick={() => onGameTap(game)}
-            className="rounded-2xl p-3 flex items-center gap-3 cursor-pointer"
-            style={{ background: '#EAF3DE', border: '1px solid rgba(27,77,62,0.15)' }}
-          >
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}
+      >
+        {games.map((game) => {
+          const scoreResult = getScoreForGame(game, weatherData);
+          const score = scoreResult?.score ?? null;
+          const badge = score != null ? scoreBadgeStyle(score) : null;
+          return (
             <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style={{ backgroundColor: '#1B4D3E' }}
+              key={game.id}
+              onClick={() => onGameTap(game)}
+              className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-0 cursor-pointer"
+              style={{ borderColor: 'var(--color-border)' }}
             >
-              ⛳
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold truncate" style={{ color: '#1B4D3E' }}>
+              <span
+                className="text-xs font-medium flex-shrink-0 capitalize"
+                style={{ width: '3.5rem', color: 'var(--color-text)' }}
+              >
+                {dateLabel(game.date)}
+              </span>
+              <span
+                className="text-xs flex-1 truncate"
+                style={{ color: 'var(--color-text-2)' }}
+              >
                 {game.courseName}
-              </div>
-              <div className="text-xs mt-0.5" style={{ color: '#2A6B4A' }}>
-                {dateLabel(game.date)} · {startTimeStr(game)} → {endTimeStr(game)} · {game.roundType} trous
-              </div>
-            </div>
-            <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
-              {score != null && badge && (
+              </span>
+              <span
+                className="text-xs font-mono flex-shrink-0"
+                style={{ color: 'var(--color-text-3)' }}
+              >
+                {startTimeStr(game)}
+              </span>
+              {score != null && badge ? (
                 <div
-                  className="text-xs font-medium px-2 py-0.5 rounded-md"
-                  style={{ backgroundColor: 'rgba(27,77,62,0.1)', color: '#1B4D3E' }}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
+                  style={{ backgroundColor: badge.bg, color: badge.color }}
                 >
-                  {scoreResult.icon} {score}
+                  {score}
                 </div>
+              ) : (
+                <div className="w-7 h-7 flex-shrink-0" />
               )}
-              <div className="text-[10px]" style={{ color: '#3B6D11' }}>
-                {windLabel} · {rainLabel}
-              </div>
               <button
                 onClick={(e) => { e.stopPropagation(); onShare(game, scoreResult); }}
-                className="opacity-60 mt-0.5"
-                style={{ color: '#1B4D3E' }}
+                className="opacity-60 flex-shrink-0"
+                style={{ color: 'var(--color-text-3)' }}
                 aria-label="Partager"
               >
                 <ShareIcon />
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); deleteGame(game.id); }}
-                className="text-xs opacity-40 mt-0.5"
-                style={{ color: '#1B4D3E' }}
+                className="text-base opacity-50 flex-shrink-0"
+                style={{ color: 'var(--color-text-3)' }}
               >
                 ✕
               </button>
             </div>
-          </div>
-        );
-      })}
-
-      {/* Autres parties — liste compacte */}
-      {others.length > 0 && (
-        <div
-          className="rounded-xl overflow-hidden"
-          style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}
-        >
-          {others.map((game) => {
-            const scoreResult = getGameScore(game);
-            const score = scoreResult?.score ?? null;
-            const badge = score != null ? scoreBadgeStyle(score) : null;
-            return (
-              <div
-                key={game.id}
-                onClick={() => onGameTap(game)}
-                className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-0 cursor-pointer hover:bg-[var(--color-surface-2)]"
-                style={{ borderColor: 'var(--color-border)' }}
-              >
-                <span
-                  className="text-xs font-medium flex-shrink-0"
-                  style={{ width: '4rem', color: 'var(--color-text)' }}
-                >
-                  {dateLabel(game.date, true)}
-                </span>
-                <span
-                  className="text-xs flex-1 truncate"
-                  style={{ color: 'var(--color-text-2)' }}
-                >
-                  {game.courseName}
-                </span>
-                <span
-                  className="text-xs font-mono flex-shrink-0"
-                  style={{ color: 'var(--color-text-3)' }}
-                >
-                  {startTimeStr(game)}
-                </span>
-                {score != null && badge ? (
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0"
-                    style={{ backgroundColor: badge.bg, color: badge.color }}
-                  >
-                    {score}
-                  </div>
-                ) : (
-                  <div className="w-7 h-7 flex-shrink-0" />
-                )}
-                <button
-                  onClick={(e) => { e.stopPropagation(); onShare(game, scoreResult); }}
-                  className="opacity-60 flex-shrink-0"
-                  style={{ color: 'var(--color-text-3)' }}
-                  aria-label="Partager"
-                >
-                  <ShareIcon />
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); deleteGame(game.id); }}
-                  className="text-base opacity-50 flex-shrink-0"
-                  style={{ color: 'var(--color-text-3)' }}
-                >
-                  ✕
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -485,7 +383,6 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
         onGameTap={handleGameTap}
         onShare={handleShare}
         weatherData={data}
-        windUnit={windUnit}
         t={t}
       />
 
@@ -520,7 +417,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
             {showWeekView ? (
               <WeekView data={data} onSelectDay={handleSelectDay} t={t} />
             ) : (
-              <GolfHeroCard dayData={dayData} lang={lang} windUnit={windUnit} t={t} />
+              <GolfHeroCard dayData={dayData} lang={lang} windUnit={windUnit} t={t} activeCourse={activeGolf} selectedDate={selectedDate} />
             )}
             <ViewDots active={showWeekView ? 1 : 0} />
           </div>

@@ -1,9 +1,17 @@
-import { useState } from 'react';
 import { computeGolfScore } from '../../utils/golfScore.js';
 import { wmoIcon, formatWind } from '../../utils/weatherUtils.js';
 import RainDrop from '../shared/RainDrop.jsx';
 
 const ROUND_DURATION = { '9': 2.25, '18': 4.5 };
+
+function dayLabelFromDate(date) {
+  if (!date) return '';
+  const today    = new Date().toISOString().slice(0, 10);
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  if (date === today)    return "Aujourd'hui";
+  if (date === tomorrow) return 'Demain';
+  return new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric' });
+}
 
 function parseSunsetHour(sunsetIso) {
   if (!sunsetIso) return 20.5;
@@ -94,6 +102,21 @@ export default function TeeTimeSelector({
       <div className="text-xs font-semibold uppercase tracking-wide text-[var(--color-golf-text)] mb-3">
         {t('my.round')}
       </div>
+
+      {/* Context block: parcours + date + heure de départ */}
+      {activeCourse && selectedDate && (
+        <div
+          className="rounded-xl px-4 py-2.5 mb-3 border"
+          style={{ background: '#EAF3DE', borderColor: 'rgba(27,77,62,0.12)' }}
+        >
+          <div className="text-sm font-semibold" style={{ color: '#1B4D3E' }}>
+            {activeCourse.name}
+          </div>
+          <div className="text-xs mt-0.5" style={{ color: '#3B6D11' }}>
+            {dayLabelFromDate(selectedDate)} · Départ {startHour}h{String(startMin).padStart(2, '0')}
+          </div>
+        </div>
+      )}
 
       {/* Toggle 9 / 18 trous */}
       <div className="flex rounded-lg overflow-hidden border border-[var(--color-golf)] mb-4">
