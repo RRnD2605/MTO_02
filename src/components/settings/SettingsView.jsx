@@ -141,6 +141,217 @@ export default function SettingsView({
           existingIds={(modal === 'golf' ? golfs : cities).map((l) => l.id)}
         />
       )}
+
+      {/* Guide des conditions */}
+      <div className="pb-2">
+        <h2 className="text-[10px] font-semibold text-[var(--color-text-3)] tracking-widest uppercase mb-3 mt-2">
+          Guide des conditions
+        </h2>
+        <div className="flex flex-col gap-3">
+
+          {/* ── GOLF ── */}
+          <ConditionsAccordion title="Golf" icon="⛳" color="#1B4D3E">
+            <CritRow
+              icon="💨" label="Vent moyen + stabilité rafales" weight={50}
+              zones={['#D94F4F','#D4891A','#8BBF3A','#52A855']}
+              thresholds={[
+                { label: '< 10 km/h · Idéal', bg: '#EAF3DE', color: '#27500A' },
+                { label: '23 km/h · Limite',  bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 35 km/h · Stop',  bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <CritRow
+              icon="💧" label="Pluie" weight={35}
+              zones={['#D94F4F','#D4891A','#8BBF3A','#52A855']}
+              thresholds={[
+                { label: '< 5% · Idéal',  bg: '#EAF3DE', color: '#27500A' },
+                { label: '25% · Limite',  bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 60% · Stop',  bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <CritRow
+              icon="🔆" label="UV" weight={15}
+              zones={['#52A855','#52A855','#8BBF3A','#D94F4F']}
+              thresholds={[
+                { label: '≤ 7 · OK',       bg: '#EAF3DE', color: '#27500A' },
+                { label: '9–10 · Élevé',   bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 10 · Extrême', bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <TipBox
+              title="⛈️ Orage"
+              text="Si un orage est prévu (code météo ≥ 95), le score passe automatiquement à 0 et une alerte rouge s'affiche, quelle que soit la valeur des autres critères."
+            />
+            <TipBox
+              title="📊 Score journée"
+              text="Le score de la hero card est calculé sur les heures 9h–17h (70% moyenne + 30% pire heure), pour refléter les vraies conditions d'une partie."
+            />
+          </ConditionsAccordion>
+
+          {/* ── RANDO ── */}
+          <ConditionsAccordion title="Randonnée" icon="🥾" color="#27500A">
+            <CritRow
+              icon="💨" label="Vent" weight={25}
+              zones={['#D94F4F','#D4891A','#8BBF3A','#52A855']}
+              thresholds={[
+                { label: '< 15 km/h · Idéal',    bg: '#EAF3DE', color: '#27500A' },
+                { label: '30 km/h · Limite',      bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 50 km/h · Dangereux', bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <CritRow
+              icon="💧" label="Pluie" weight={25}
+              zones={['#D94F4F','#D4891A','#8BBF3A','#52A855']}
+              thresholds={[
+                { label: '< 10% · Idéal', bg: '#EAF3DE', color: '#27500A' },
+                { label: '40% · Limite',  bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 70% · Stop',  bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <CritRow
+              icon="🌡️" label="Température" weight={20}
+              zones={['#D94F4F','#D4891A','#52A855','#D4891A']}
+              thresholds={[
+                { label: '8–22°C · Zone idéale', bg: '#EAF3DE', color: '#27500A' },
+                { label: '< 0°C · Froid',        bg: '#FCEBEB', color: '#A32D2D' },
+                { label: '> 28°C · Chaud',        bg: '#FEF3C7', color: '#92400E' },
+              ]}
+            />
+            <CritRow
+              icon="🌫️" label="Visibilité" weight={15}
+              zones={['#D94F4F','#52A855','#52A855','#52A855']}
+              note="Brouillard (code météo 45–49) = 0 pt automatiquement. Sinon = 15 pts."
+            />
+            <CritRow
+              icon="🔆" label="UV" weight={15}
+              zones={['#52A855','#52A855','#8BBF3A','#D94F4F']}
+              thresholds={[
+                { label: '≤ 7 · OK',       bg: '#EAF3DE', color: '#27500A' },
+                { label: '9–10 · Élevé',   bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 10 · Extrême', bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <TipBox
+              title="⛰️ Altitude"
+              text="Le vent est particulièrement dangereux en crête. Au-dessus de 1500m, même 30 km/h peuvent déstabiliser. Prenez toujours un coupe-vent."
+            />
+          </ConditionsAccordion>
+
+          {/* ── VTT ── */}
+          <ConditionsAccordion title="VTT" icon="🚵" color="#8B3A0F">
+            <CritRow
+              icon="🌱" label="État des sols (pluie /6h)" weight={30}
+              zones={['#D94F4F','#D4891A','#8BBF3A','#52A855']}
+              thresholds={[
+                { label: '0 mm · Secs · Idéal',    bg: '#EAF3DE', color: '#27500A' },
+                { label: '4 mm · Humides',          bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 10 mm · Impraticable',  bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <CritRow
+              icon="💧" label="Pluie en cours" weight={25}
+              zones={['#D94F4F','#D4891A','#8BBF3A','#52A855']}
+              thresholds={[
+                { label: '< 5% · Idéal', bg: '#EAF3DE', color: '#27500A' },
+                { label: '25% · Limite', bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 50% · Stop', bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <CritRow
+              icon="💨" label="Vent / Rafales" weight={20}
+              zones={['#D94F4F','#D4891A','#8BBF3A','#52A855']}
+              thresholds={[
+                { label: '< 25 km/h · Idéal',     bg: '#EAF3DE', color: '#27500A' },
+                { label: '50 km/h · Limite',       bg: '#FEF3C7', color: '#92400E' },
+                { label: '> 65 km/h · Dangereux',  bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <CritRow
+              icon="🌡️" label="Température" weight={15}
+              zones={['#D94F4F','#D4891A','#52A855','#D4891A']}
+              thresholds={[
+                { label: '5–28°C · Zone idéale',    bg: '#EAF3DE', color: '#27500A' },
+                { label: '< -2°C ou > 38°C · Stop', bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <CritRow
+              icon="🔆" label="UV" weight={10}
+              zones={['#52A855','#52A855','#8BBF3A','#D94F4F']}
+              thresholds={[
+                { label: '≤ 7 · OK',       bg: '#EAF3DE', color: '#27500A' },
+                { label: '> 10 · Extrême', bg: '#FCEBEB', color: '#A32D2D' },
+              ]}
+            />
+            <TipBox
+              title="🌧️ Sols humides"
+              text="Les sols humides sont le critère #1 en VTT — boue = adhérence réduite, freinage allongé, risque de chute. Attendre 6h après une pluie avant de sortir."
+            />
+          </ConditionsAccordion>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConditionsAccordion({ title, icon, color, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="rounded-xl overflow-hidden border border-[var(--color-border)]">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-3 p-4 text-left"
+        style={{ background: color }}
+      >
+        <span className="text-xl">{icon}</span>
+        <span className="text-sm font-semibold text-white flex-1">{title}</span>
+        <span className="text-white text-lg" style={{ opacity: 0.6 }}>{open ? '−' : '+'}</span>
+      </button>
+      {open && (
+        <div className="bg-[var(--color-surface-2)] divide-y divide-[var(--color-border)]">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CritRow({ icon, label, weight, zones, thresholds, note }) {
+  return (
+    <div className="px-4 py-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-[var(--color-text)]">{icon} {label}</span>
+        <span className="text-[10px] text-[var(--color-text-3)] bg-[var(--color-surface)] px-2 py-0.5 rounded-full">
+          {weight} pts
+        </span>
+      </div>
+      <div className="h-1.5 rounded-full flex overflow-hidden mb-1.5">
+        {zones.map((z, i) => (
+          <div key={i} className="flex-1" style={{ background: z }} />
+        ))}
+      </div>
+      {thresholds && (
+        <div className="flex gap-1.5 flex-wrap mt-1.5">
+          {thresholds.map((t, i) => (
+            <span key={i} className="text-[10px] px-2 py-0.5 rounded font-mono"
+                  style={{ background: t.bg, color: t.color }}>
+              {t.label}
+            </span>
+          ))}
+        </div>
+      )}
+      {note && (
+        <p className="text-[10px] text-[var(--color-text-3)] mt-1.5">{note}</p>
+      )}
+    </div>
+  );
+}
+
+function TipBox({ title, text }) {
+  return (
+    <div className="mx-4 mb-3 mt-1 bg-[var(--color-surface)] rounded-xl p-3 border border-[var(--color-border)]">
+      <div className="text-xs font-semibold text-[var(--color-text)] mb-1">{title}</div>
+      <p className="text-[11px] text-[var(--color-text-2)] leading-relaxed">{text}</p>
     </div>
   );
 }
