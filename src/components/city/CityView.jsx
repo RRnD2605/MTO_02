@@ -4,6 +4,7 @@ import CityHeroCard from './CityHeroCard.jsx';
 import DaySelector from './DaySelector.jsx';
 import DaySlots from './DaySlots.jsx';
 import ForecastList from './ForecastList.jsx';
+import RainDrop from '../shared/RainDrop.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { parseDayData, formatWind, windDirection } from '../../utils/weatherUtils.js';
 
@@ -63,28 +64,15 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
           <CityHeroCard dayData={dayData} lang={lang} t={t} />
 
           {dayData && (
-            <div className="flex gap-2 px-4">
-              <MetricItem
-                label={t('wind')}
-                value={formatWind(dayData.windspeed ?? 0, windUnit)}
-                sub={windDirection(dayData.winddirection ?? 0)}
-                icon="💨"
-                extra={dayData.windgusts ? `↑ ${formatWind(dayData.windgusts, windUnit)}` : null}
-                accent
-              />
-              <MetricItem
-                label={t('rain')}
-                value={`${dayData.rainProb ?? 0}%`}
-                icon={null}
-                sub={null}
-              />
-              <MetricItem
-                label={t('uv')}
-                value={dayData.uvMax != null ? Math.round(dayData.uvMax).toString() : '0'}
-                icon="☀️"
-                sub={null}
-              />
-            </div>
+            <MetricsBand
+              windspeed={dayData.windspeed ?? 0}
+              winddirection={dayData.winddirection ?? 0}
+              windgusts={dayData.windgusts ?? 0}
+              rainProb={dayData.rainProb ?? 0}
+              uvMax={dayData.uvMax ?? 0}
+              windUnit={windUnit}
+              t={t}
+            />
           )}
 
           {dayData && <DaySlots hours={dayData.hours} lang={lang} windUnit={windUnit} />}
@@ -101,18 +89,46 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
   );
 }
 
-function MetricItem({ label, value, sub, icon, accent, extra }) {
+function MetricsBand({ windspeed, winddirection, windgusts, rainProb, uvMax, windUnit, t }) {
   return (
-    <div className="flex-1 bg-[var(--color-surface-2)] rounded-xl p-2">
-      <div className="flex items-center gap-1 mb-1">
-        {icon && <span className="text-sm">{icon}</span>}
-        {sub && <span className="text-xs text-[var(--color-text-3)]">{sub}</span>}
+    <div className="mx-4 bg-[var(--color-surface-2)] rounded-xl border border-[var(--color-border)] flex items-stretch">
+      {/* Vent */}
+      <div className="flex-1 px-3 py-2.5 border-r border-[var(--color-border)]">
+        <div className="text-[10px] text-[var(--color-text-3)] mb-1">{t('wind')}</div>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-mono font-medium text-[var(--color-city-text)]">
+              {formatWind(windspeed, windUnit)}
+            </div>
+            <div className="text-[10px] text-[var(--color-text-3)]">
+              {windDirection(winddirection)} · ↑ {formatWind(windgusts, windUnit)}
+            </div>
+          </div>
+          <span className="text-lg">💨</span>
+        </div>
       </div>
-      <div className="text-xs text-[var(--color-text-3)] mb-0.5">{label}</div>
-      <div className={`font-mono text-base font-medium ${accent ? 'text-[var(--color-city-text)]' : 'text-[var(--color-text)]'}`}>
-        {value}
+
+      {/* Pluie */}
+      <div className="flex-1 px-3 py-2.5 border-r border-[var(--color-border)]">
+        <div className="text-[10px] text-[var(--color-text-3)] mb-1">{t('rain')}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-mono font-medium text-[var(--color-text)]">
+            {rainProb}%
+          </div>
+          <RainDrop prob={rainProb} />
+        </div>
       </div>
-      {extra && <div className="text-xs text-[var(--color-text-3)] mt-0.5">{extra}</div>}
+
+      {/* UV */}
+      <div className="flex-1 px-3 py-2.5">
+        <div className="text-[10px] text-[var(--color-text-3)] mb-1">{t('uv')}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-mono font-medium text-[var(--color-text)]">
+            {Math.round(uvMax)}
+          </div>
+          <span className="text-lg">☀️</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -126,11 +142,7 @@ function SkeletonCity() {
           <div key={i} className="bg-[var(--color-surface-2)] rounded-full h-8 w-16 flex-shrink-0" />
         ))}
       </div>
-      <div className="flex gap-2">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="flex-1 bg-[var(--color-surface-2)] rounded-xl h-16" />
-        ))}
-      </div>
+      <div className="bg-[var(--color-surface-2)] rounded-xl h-16" />
     </div>
   );
 }

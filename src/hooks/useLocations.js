@@ -92,5 +92,5 @@ export function useLocations() {
     [setGolfs]
   );
 
-  return { cities, golfs, addCity, removeCity, moveCity, addGolf, removeGolf, moveGolf };
+  return { cities, golfs, setCities, setGolfs, addCity, removeCity, moveCity, addGolf, removeGolf, moveGolf };
 }

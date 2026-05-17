@@ -1,6 +1,8 @@
 export default {
   'nav.cities': 'Villes',
   'nav.golf': 'Golf',
+  'nav.rando': 'Rando',
+  'nav.vtt': 'VTT',
   'nav.settings': 'Réglages',
 
   'score.ideal': 'Conditions idéales',
@@ -36,6 +38,7 @@ export default {
   'search.no.results': 'Aucun résultat',
   'search.searching': 'Recherche...',
 
+  'settings.tabs': 'Onglets actifs',
   'settings.cities': 'Villes',
   'settings.golfs': 'Parcours de golf',
   'settings.wind.unit': 'Unités de vent',

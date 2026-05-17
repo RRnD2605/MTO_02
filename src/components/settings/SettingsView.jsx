@@ -3,29 +3,77 @@ import LocationList from './LocationList.jsx';
 import AddLocationModal from './AddLocationModal.jsx';
 import { getModelName } from '../../services/weatherService.js';
 
+const TAB_META = {
+  cities: { labelKey: 'nav.cities',   color: '#2B6CB0' },
+  golf:   { labelKey: 'nav.golf',     color: '#1B4D3E' },
+  rando:  { labelKey: 'nav.rando',    color: '#27500A' },
+  vtt:    { labelKey: 'nav.vtt',      color: '#8B3A0F' },
+};
+
 export default function SettingsView({
   cities, golfs,
-  addCity, removeCity, moveCity,
-  addGolf, removeGolf, moveGolf,
+  addCity, removeCity, setCities,
+  addGolf, removeGolf, setGolfs,
   lang, setLang,
   windUnit, setWindUnit,
-  activities, setActivity,
+  enabledTabs, toggleTab, allContentTabs,
   t,
 }) {
   const [modal, setModal] = useState(null);
 
   return (
     <div className="flex flex-col gap-6 p-4 pb-24 overflow-hidden bg-[var(--color-bg)]">
+
+      {/* Onglets actifs */}
+      <Section title={t('settings.tabs')}>
+        <div className="flex flex-col rounded-xl overflow-hidden border border-[var(--color-border)]">
+          {allContentTabs.map((id) => {
+            const meta = TAB_META[id];
+            const enabled = enabledTabs.includes(id);
+            const isLast = enabled && enabledTabs.length <= 1;
+            return (
+              <div
+                key={id}
+                className="flex items-center justify-between px-4 py-3 bg-[var(--color-surface)] border-b last:border-b-0 border-[var(--color-border)]"
+              >
+                <span className="text-sm text-[var(--color-text)]">{t(meta.labelKey)}</span>
+                <button
+                  onClick={() => { if (!isLast) toggleTab(id, !enabled); }}
+                  disabled={isLast}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isLast ? 'opacity-40' : ''}`}
+                  style={{ backgroundColor: enabled ? meta.color : 'var(--color-border)' }}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-6' : 'translate-x-1'}`}
+                  />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
+
+      {/* Villes */}
       <Section title={t('settings.cities')}>
-        <LocationList items={cities} onRemove={removeCity} onMove={moveCity} showModel t={t} />
+        <LocationList
+          items={cities}
+          onRemove={removeCity}
+          onReorder={setCities}
+        />
         <AddButton onClick={() => setModal('city')} label={t('add.city')} color="city" />
       </Section>
 
+      {/* Golfs */}
       <Section title={t('settings.golfs')}>
-        <LocationList items={golfs} onRemove={removeGolf} onMove={moveGolf} showModel t={t} />
+        <LocationList
+          items={golfs}
+          onRemove={removeGolf}
+          onReorder={setGolfs}
+        />
         <AddButton onClick={() => setModal('golf')} label={t('add.golf')} color="golf" />
       </Section>
 
+      {/* Unité de vent */}
       <Section title={t('settings.wind.unit')}>
         <div className="flex rounded-xl overflow-hidden border border-[var(--color-border)]">
           {['kmh', 'knots'].map((u) => (
@@ -44,6 +92,7 @@ export default function SettingsView({
         </div>
       </Section>
 
+      {/* Langue */}
       <Section title={t('settings.lang')}>
         <div className="flex rounded-xl overflow-hidden border border-[var(--color-border)]">
           {['fr', 'en'].map((l) => (
@@ -62,41 +111,7 @@ export default function SettingsView({
         </div>
       </Section>
 
-      <Section title={t('settings.activities')}>
-        {[
-          { key: 'rando', labelKey: 'settings.activities.rando' },
-          { key: 'vtt',   labelKey: 'settings.activities.vtt' },
-          { key: 'golf',  labelKey: 'settings.activities.golf' },
-        ].map(({ key, labelKey }) => {
-          const enabled = activities?.[key] ?? false;
-          const isLastEnabled = enabled && Object.values(activities || {}).filter(Boolean).length <= 1;
-          return (
-            <div
-              key={key}
-              className="flex items-center justify-between px-4 py-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]"
-            >
-              <span className="text-sm text-[var(--color-text)]">{t(labelKey)}</span>
-              <button
-                onClick={() => {
-                  if (isLastEnabled) return;
-                  setActivity(key, !enabled);
-                }}
-                disabled={isLastEnabled}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  enabled ? 'bg-[#27500A]' : 'bg-[var(--color-border)]'
-                } ${isLastEnabled ? 'opacity-40' : ''}`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-                    enabled ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-          );
-        })}
-      </Section>
-
+      {/* Sources météo */}
       <Section title={t('settings.sources')}>
         <p className="text-xs text-[var(--color-text-3)] mb-2">{t('settings.sources.subtitle')}</p>
         <div className="flex flex-col rounded-xl overflow-hidden border border-[var(--color-border)]">

@@ -3,20 +3,26 @@ import NavBar from './components/layout/NavBar.jsx';
 import BottomBar from './components/layout/BottomBar.jsx';
 import CityView from './components/city/CityView.jsx';
 import GolfView from './components/golf/GolfView.jsx';
-import ActivitiesView from './components/activities/ActivitiesView.jsx';
+import RandoView from './components/activities/RandoView.jsx';
+import VttView from './components/activities/VttView.jsx';
 import SettingsView from './components/settings/SettingsView.jsx';
 import { useI18n } from './hooks/useI18n.js';
 import { useLocations } from './hooks/useLocations.js';
 
 const LS_WIND_KEY = 'meteo_golf_wind_unit_v1';
-const LS_ACTIVITIES_KEY = 'meteo_golf_activities_v1';
+const LS_NAV_TABS_KEY = 'meteo_nav_tabs_v1';
 
-function getInitialActivities() {
+const ALL_CONTENT_TABS = ['cities', 'golf', 'rando', 'vtt'];
+
+function getInitialEnabledTabs() {
   try {
-    const stored = localStorage.getItem(LS_ACTIVITIES_KEY);
-    if (stored) return JSON.parse(stored);
+    const stored = localStorage.getItem(LS_NAV_TABS_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
   } catch {}
-  return { rando: true, vtt: false, golf: false };
+  return ['cities', 'golf', 'rando'];
 }
 
 function getInitialWindUnit() {
@@ -24,15 +30,19 @@ function getInitialWindUnit() {
 }
 
 export default function App() {
-  const [tab, setTab] = useState('cities');
+  const [enabledTabs, setEnabledTabsState] = useState(getInitialEnabledTabs);
+  const [tab, setTab] = useState(() => {
+    const tabs = getInitialEnabledTabs();
+    return tabs[0] ?? 'cities';
+  });
+
   const { lang, setLang, t } = useI18n();
   const {
     cities, golfs,
-    addCity, removeCity, moveCity,
-    addGolf, removeGolf, moveGolf,
+    addCity, removeCity, setCities,
+    addGolf, removeGolf, setGolfs,
   } = useLocations();
   const [windUnit, setWindUnitState] = useState(getInitialWindUnit);
-  const [activities, setActivitiesState] = useState(getInitialActivities);
 
   const updateRef = useRef({ updatedAt: null, refresh: null });
   const [updatedAt, setUpdatedAt] = useState(null);
@@ -42,11 +52,20 @@ export default function App() {
     setWindUnitState(u);
   }, []);
 
-  const setActivity = useCallback((key, value) => {
-    setActivitiesState((prev) => {
-      const next = { ...prev, [key]: value };
-      localStorage.setItem(LS_ACTIVITIES_KEY, JSON.stringify(next));
-      return next;
+  const toggleTab = useCallback((id, value) => {
+    setEnabledTabsState((prev) => {
+      const next = value
+        ? (prev.includes(id) ? prev : [...prev, id])
+        : prev.filter((t) => t !== id);
+      // Enforce minimum 1 active content tab
+      const safe = next.length > 0 ? next : prev;
+      localStorage.setItem(LS_NAV_TABS_KEY, JSON.stringify(safe));
+      // If current tab was disabled, switch to first enabled
+      setTab((currentTab) => {
+        if (currentTab !== id) return currentTab;
+        return safe[0] ?? 'cities';
+      });
+      return safe;
     });
   }, []);
 
@@ -59,59 +78,37 @@ export default function App() {
     if (updateRef.current.refresh) updateRef.current.refresh();
   }, []);
 
+  const sharedProps = { t, lang, windUnit, onUpdateTimestamp: handleUpdateTimestamp };
+
   return (
     <div
       className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)] font-sans"
       style={{ maxWidth: '100vw', overflowX: 'hidden' }}
     >
-      <NavBar activeTab={tab} onTab={setTab} t={t} />
+      <NavBar activeTab={tab} onTab={setTab} t={t} enabledTabs={enabledTabs} />
 
       <main className="max-w-lg mx-auto" style={{ overflowX: 'hidden' }}>
-        {tab === 'cities' && (
-          <CityView
-            cities={cities}
-            t={t}
-            lang={lang}
-            windUnit={windUnit}
-            onUpdateTimestamp={handleUpdateTimestamp}
-          />
-        )}
-        {tab === 'golf' && (
-          <GolfView
-            golfs={golfs}
-            t={t}
-            lang={lang}
-            windUnit={windUnit}
-            onUpdateTimestamp={handleUpdateTimestamp}
-          />
-        )}
-        {tab === 'activities' && (
-          <ActivitiesView
-            cities={cities}
-            golfs={golfs}
-            activities={activities}
-            t={t}
-            lang={lang}
-            windUnit={windUnit}
-            onUpdateTimestamp={handleUpdateTimestamp}
-          />
-        )}
+        {tab === 'cities' && <CityView cities={cities} {...sharedProps} />}
+        {tab === 'golf'   && <GolfView golfs={golfs}   {...sharedProps} />}
+        {tab === 'rando'  && <RandoView cities={cities} {...sharedProps} onGpx={() => {}} />}
+        {tab === 'vtt'    && <VttView   cities={cities} {...sharedProps} onGpx={() => {}} />}
         {tab === 'settings' && (
           <SettingsView
             cities={cities}
             golfs={golfs}
             addCity={addCity}
             removeCity={removeCity}
-            moveCity={moveCity}
+            setCities={setCities}
             addGolf={addGolf}
             removeGolf={removeGolf}
-            moveGolf={moveGolf}
+            setGolfs={setGolfs}
             lang={lang}
             setLang={setLang}
             windUnit={windUnit}
             setWindUnit={setWindUnit}
-            activities={activities}
-            setActivity={setActivity}
+            enabledTabs={enabledTabs}
+            toggleTab={toggleTab}
+            allContentTabs={ALL_CONTENT_TABS}
             t={t}
           />
         )}

@@ -1,6 +1,8 @@
 export default {
   'nav.cities': 'Cities',
   'nav.golf': 'Golf',
+  'nav.rando': 'Hike',
+  'nav.vtt': 'MTB',
   'nav.settings': 'Settings',
 
   'score.ideal': 'Ideal conditions',
@@ -36,6 +38,7 @@ export default {
   'search.no.results': 'No results',
   'search.searching': 'Searching...',
 
+  'settings.tabs': 'Active tabs',
   'settings.cities': 'Cities',
   'settings.golfs': 'Golf courses',
   'settings.wind.unit': 'Wind units',
