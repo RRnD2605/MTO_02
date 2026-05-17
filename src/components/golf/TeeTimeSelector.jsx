@@ -29,10 +29,10 @@ function levelFromScore(avg) {
   return              { icon: '⛔', labelKey: 'score.bad'   };
 }
 
-export default function TeeTimeSelector({ dayData, windUnit, t, activeCourse, selectedDate, onSaveGame }) {
-  const [roundType, setRoundType] = useState('18');
-  const [startHour, setStartHour] = useState(9);
-  const [startMin, setStartMin] = useState(0);
+export default function TeeTimeSelector({
+  dayData, windUnit, t, activeCourse, selectedDate, onSaveGame,
+  roundType, setRoundType, startHour, setStartHour, startMin, setStartMin,
+}) {
 
   if (!dayData?.hours) return null;
 
@@ -183,61 +183,15 @@ export default function TeeTimeSelector({ dayData, windUnit, t, activeCourse, se
         </div>
       )}
 
-      {/* Boutons Enregistrer + iCal */}
+      {/* Bouton Enregistrer */}
       {activeCourse && selectedDate && onSaveGame && (
-        <div className="flex gap-2 mt-3">
-          <button
-            onClick={() => {
-              const windLabel = formatWind(dayData.windspeed ?? 0, windUnit);
-              const rainLabel = `${dayData.rainProb ?? 0}%`;
-              onSaveGame({
-                startHour, startMin, roundType, avgScore,
-                windLabel, rainLabel,
-              });
-            }}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white"
-            style={{ backgroundColor: '#1B4D3E' }}
-          >
-            💾 {t('tee.save')}
-          </button>
-          <button
-            onClick={() => {
-              const windLabel = formatWind(dayData.windspeed ?? 0, windUnit);
-              const rainLabel = `${dayData.rainProb ?? 0}%`;
-              const start = new Date(
-                `${selectedDate}T${String(startHour).padStart(2, '0')}:${String(startMin).padStart(2, '0')}:00`
-              );
-              const end = new Date(start.getTime() + ROUND_DURATION[roundType] * 60 * 60 * 1000);
-              const fmt = (d) => d.toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
-              const ics = [
-                'BEGIN:VCALENDAR',
-                'VERSION:2.0',
-                'PRODID:-//Météo Golf//FR',
-                'BEGIN:VEVENT',
-                `DTSTART:${fmt(start)}`,
-                `DTEND:${fmt(end)}`,
-                `SUMMARY:Golf - ${activeCourse.name} · ${roundType} trous`,
-                `DESCRIPTION:Score météo: ${avgScore}/100 - Vent ${windLabel} - Pluie ${rainLabel}`,
-                `LOCATION:${activeCourse.label || activeCourse.name}`,
-                `UID:${Date.now()}@meteo-golf`,
-                'END:VEVENT',
-                'END:VCALENDAR',
-              ].join('\r\n');
-              const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-              const url = URL.createObjectURL(blob);
-              window.open(url);
-              setTimeout(() => URL.revokeObjectURL(url), 1000);
-            }}
-            className="px-4 py-2.5 rounded-xl text-sm border"
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-2)',
-            }}
-          >
-            📅
-          </button>
-        </div>
+        <button
+          onClick={() => onSaveGame({ startHour, startMin, roundType })}
+          className="w-full py-2.5 rounded-xl text-sm font-medium text-white mt-3"
+          style={{ backgroundColor: '#1B4D3E' }}
+        >
+          💾 {t('tee.save')}
+        </button>
       )}
     </div>
   );

@@ -5,11 +5,10 @@ import ActivityHeroCard from './ActivityHeroCard.jsx';
 import ActivityHoursTable from './ActivityHoursTable.jsx';
 import StormAlert from './StormAlert.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
-import { parseActivityDayData, formatWind, windDirection } from '../../utils/weatherUtils.js';
+import { parseActivityDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
 import { computeVttScore } from '../../utils/vttScore.js';
 
 const VTT_COLOR = '#8B3A0F';
-const getInitialDayIndex = () => new Date().getHours() >= 21 ? 1 : 0;
 
 function uvLabel(uv) {
   if (uv <= 2) return '🟢 Faible';
@@ -82,7 +81,7 @@ export default function VttView({ cities, t, lang, windUnit, onUpdateTimestamp, 
         <LocationTabs
           locations={cities}
           activeId={activeId}
-          onSelect={(id) => { setActiveId(id); setDayIndex(0); }}
+          onSelect={(id) => { setActiveId(id); setDayIndex(getInitialDayIndex()); }}
           accentClass="bg-[#8B3A0F] text-white"
         />
       </div>

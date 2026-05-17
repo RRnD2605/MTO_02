@@ -6,8 +6,8 @@ import MetricsGrid from './MetricsGrid.jsx';
 import HoursTable from './HoursTable.jsx';
 import DaySelector from '../city/DaySelector.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
-import { useGames, cleanOldGames } from '../../hooks/useGames.js';
-import { parseGolfDayData, formatWind } from '../../utils/weatherUtils.js';
+import { useGames } from '../../hooks/useGames.js';
+import { parseGolfDayData, formatWind, getInitialDayIndex } from '../../utils/weatherUtils.js';
 import { computeGolfScore } from '../../utils/golfScore.js';
 import { wmoIcon } from '../../utils/weatherUtils.js';
 
@@ -42,7 +42,7 @@ function scoreBadgeStyle(score) {
 }
 
 // ─── Upcoming Games section ────────────────────────────────────────────────────
-function UpcomingGames({ games, deleteGame, weatherData, windUnit, t }) {
+function UpcomingGames({ games, deleteGame, onGameTap, weatherData, windUnit, t }) {
   if (!games || games.length === 0) return null;
 
   const today = new Date().toISOString().slice(0, 10);
@@ -113,7 +113,8 @@ function UpcomingGames({ games, deleteGame, weatherData, windUnit, t }) {
         return (
           <div
             key={game.id}
-            className="rounded-2xl p-3 flex items-center gap-3"
+            onClick={() => onGameTap(game)}
+            className="rounded-2xl p-3 flex items-center gap-3 cursor-pointer"
             style={{ background: '#EAF3DE', border: '1px solid rgba(27,77,62,0.15)' }}
           >
             <div
@@ -167,7 +168,8 @@ function UpcomingGames({ games, deleteGame, weatherData, windUnit, t }) {
             return (
               <div
                 key={game.id}
-                className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-0"
+                onClick={() => onGameTap(game)}
+                className="flex items-center gap-2.5 px-3 py-2.5 border-b last:border-0 cursor-pointer hover:bg-[var(--color-surface-2)]"
                 style={{ borderColor: 'var(--color-border)' }}
               >
                 <span
@@ -313,13 +315,14 @@ function ViewDots({ active }) {
 }
 
 // ─── Main GolfView ────────────────────────────────────────────────────────────
-const getInitialDayIndex = () => new Date().getHours() >= 21 ? 1 : 0;
-
 export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }) {
   const [activeId, setActiveId] = useState(golfs[0]?.id);
   const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
   const [showWeekView, setShowWeekView] = useState(false);
   const [touchStartX, setTouchStartX] = useState(null);
+  const [roundType, setRoundType] = useState('18');
+  const [startHour, setStartHour] = useState(9);
+  const [startMin, setStartMin] = useState(0);
 
   const activeGolf = golfs.find((g) => g.id === activeId) || golfs[0];
   const { data, loading, error, updatedAt, refresh } = useWeather(activeGolf, 'golf');
@@ -361,6 +364,21 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
     setShowWeekView(false);
   }
 
+  function handleGameTap(game) {
+    setActiveId(game.courseId);
+    const today = new Date().toISOString().slice(0, 10);
+    const dayDiff = Math.round(
+      (new Date(game.date) - new Date(today)) / (1000 * 60 * 60 * 24)
+    );
+    setDayIndex(Math.max(0, Math.min(dayDiff, 6)));
+    setRoundType(game.roundType);
+    setStartHour(game.startHour);
+    setStartMin(game.startMinute);
+    setTimeout(() => {
+      document.getElementById('ma-partie-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  }
+
   function handleSaveGame({ startHour, startMin, roundType }) {
     if (!activeGolf || !selectedDate) return;
     const newGame = {
@@ -384,7 +402,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
         <LocationTabs
           locations={golfs}
           activeId={activeId}
-          onSelect={(id) => { setActiveId(id); setDayIndex(0); setShowWeekView(false); }}
+          onSelect={(id) => { setActiveId(id); setDayIndex(getInitialDayIndex()); setShowWeekView(false); }}
           accentClass="bg-[var(--color-golf)] text-white"
         />
       </div>
@@ -393,6 +411,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
       <UpcomingGames
         games={games}
         deleteGame={deleteGame}
+        onGameTap={handleGameTap}
         weatherData={data}
         windUnit={windUnit}
         t={t}
@@ -434,14 +453,22 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
             <ViewDots active={showWeekView ? 1 : 0} />
           </div>
 
-          <TeeTimeSelector
-            dayData={dayData}
-            windUnit={windUnit}
-            t={t}
-            activeCourse={activeGolf}
-            selectedDate={selectedDate}
-            onSaveGame={handleSaveGame}
-          />
+          <div id="ma-partie-section">
+            <TeeTimeSelector
+              dayData={dayData}
+              windUnit={windUnit}
+              t={t}
+              activeCourse={activeGolf}
+              selectedDate={selectedDate}
+              onSaveGame={handleSaveGame}
+              roundType={roundType}
+              setRoundType={setRoundType}
+              startHour={startHour}
+              setStartHour={setStartHour}
+              startMin={startMin}
+              setStartMin={setStartMin}
+            />
+          </div>
           <MetricsGrid dayData={dayData} windUnit={windUnit} t={t} />
           <HoursTable hours={dayData?.hours} windUnit={windUnit} t={t} />
         </>

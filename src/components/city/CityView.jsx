@@ -6,9 +6,7 @@ import DaySlots from './DaySlots.jsx';
 import ForecastList from './ForecastList.jsx';
 import RainDrop from '../shared/RainDrop.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
-import { parseDayData, formatWind, windDirection } from '../../utils/weatherUtils.js';
-
-const getInitialDayIndex = () => new Date().getHours() >= 21 ? 1 : 0;
+import { parseDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
 
 export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp }) {
   const [activeId, setActiveId] = useState(cities[0]?.id);
@@ -31,7 +29,7 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
         <LocationTabs
           locations={cities}
           activeId={activeId}
-          onSelect={(id) => { setActiveId(id); setDayIndex(0); }}
+          onSelect={(id) => { setActiveId(id); setDayIndex(getInitialDayIndex()); }}
           accentClass="bg-[var(--color-city)] text-white"
         />
       </div>

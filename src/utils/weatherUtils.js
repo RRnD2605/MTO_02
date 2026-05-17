@@ -1,3 +1,7 @@
+export function getInitialDayIndex() {
+  return new Date().getHours() >= 21 ? 1 : 0;
+}
+
 export function wmoIcon(code) {
   if (code === 0)    return '☀️';
   if (code === 1)    return '🌤️';
