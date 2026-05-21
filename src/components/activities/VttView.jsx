@@ -1,14 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import LocationTabs from '../shared/LocationTabs.jsx';
 import DaySelector from '../city/DaySelector.jsx';
 import ActivityHeroCard from './ActivityHeroCard.jsx';
 import ActivityHoursTable from './ActivityHoursTable.jsx';
 import StormAlert from './StormAlert.jsx';
+import AddLocationModal from '../settings/AddLocationModal.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { parseActivityDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
 import { computeVttScore } from '../../utils/vttScore.js';
 
 const VTT_COLOR = '#8B3A0F';
+const LS_VTT_SPOTS = 'meteo_vtt_spots_v1';
 
 function uvLabel(uv) {
   if (uv <= 2) return 'Faible';
@@ -19,26 +20,51 @@ function uvLabel(uv) {
 
 function MetricCard({ icon, sub, label, value, extra, accent }) {
   return (
-    <div className="rounded-xl bg-[var(--color-surface-2)] p-2">
+    <div className="rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)] p-3">
       <div className="flex items-center gap-1 mb-1">
-        {icon && <span className="text-sm">{icon}</span>}
-        {sub && <span className="text-xs text-[var(--color-text-3)] truncate">{sub}</span>}
+        {icon && <span className="text-xs">{icon}</span>}
+        {sub && <span className="text-[10px] text-[var(--color-text-3)] truncate">{sub}</span>}
       </div>
-      <div className="text-xs text-[var(--color-text-3)] mb-0.5">{label}</div>
-      <div className="font-mono text-base font-medium truncate" style={{ color: accent ? VTT_COLOR : 'var(--color-text)' }}>
+      <div className="text-[10px] text-[var(--color-text-3)] mb-1">{label}</div>
+      <div className="text-base font-medium truncate" style={{ color: accent ? VTT_COLOR : 'var(--color-text)' }}>
         {value}
       </div>
-      {extra && <div className="text-xs text-[var(--color-text-3)] mt-0.5 leading-snug">{extra}</div>}
+      {extra && <div className="text-[10px] text-[var(--color-text-3)] mt-1">{extra}</div>}
     </div>
   );
 }
 
-export default function VttView({ cities, t, lang, windUnit, onUpdateTimestamp, onGpx }) {
-  const [activeId, setActiveId] = useState(cities[0]?.id);
-  const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
+function useSpots(storageKey) {
+  const [spots, setSpotsState] = useState(() => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+  const persist = (next) => {
+    setSpotsState(next);
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
+  };
+  return {
+    spots,
+    addSpot: (s) => persist([...spots, s]),
+    removeSpot: (id) => persist(spots.filter((s) => s.id !== id)),
+  };
+}
 
-  const activeCity = cities.find((c) => c.id === activeId) || cities[0];
-  const { data, loading, error, updatedAt, refresh } = useWeather(activeCity, 'activity');
+export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx }) {
+  const { spots, addSpot } = useSpots(LS_VTT_SPOTS);
+  const [activeId, setActiveId] = useState('gps');
+  const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
+  const [gpsLabel, setGpsLabel] = useState('Ma position');
+  const [gpsCoords, setGpsCoords] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  const activeLocation = activeId === 'gps'
+    ? (gpsCoords ? { id: 'gps', name: gpsLabel, latitude: gpsCoords.lat, longitude: gpsCoords.lon } : null)
+    : spots.find((s) => s.id === activeId) || null;
+
+  const { data, loading, error, updatedAt, refresh } = useWeather(activeLocation, 'activity');
 
   useEffect(() => {
     if (updatedAt && typeof onUpdateTimestamp === 'function') {
@@ -75,18 +101,89 @@ export default function VttView({ cities, t, lang, windUnit, onUpdateTimestamp, 
   const feelsLike = currentHourData?.apparentTemp ?? dayData?.maxTemp ?? 0;
   const soilLabelKey = scoreResult?.soilLabel ?? 'soil.dry';
 
+  async function handleGeolocate() {
+    setActiveId('gps');
+    setGpsLabel('Localisation...');
+    if (!navigator.geolocation) {
+      setGpsLabel('GPS non disponible');
+      return;
+    }
+    try {
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        })
+      );
+      const { latitude, longitude } = pos.coords;
+      setGpsCoords({ lat: latitude, lon: longitude });
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+          { headers: { 'Accept-Language': 'fr' } }
+        );
+        const json = await res.json();
+        const name = json.address?.village
+          || json.address?.town
+          || json.address?.city
+          || json.address?.municipality
+          || 'Ma position';
+        setGpsLabel(name);
+      } catch {
+        setGpsLabel('Ma position');
+      }
+    } catch (err) {
+      setGpsLabel('Position indisponible');
+      console.error(err);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
+      {/* Onglets : GPS · spots · + Spot */}
       <div className="pt-3">
-        <LocationTabs
-          locations={cities}
-          activeId={activeId}
-          onSelect={(id) => { setActiveId(id); setDayIndex(getInitialDayIndex()); }}
-          accentClass="bg-[#8B3A0F] text-white"
-        />
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 pb-1">
+          <button
+            onClick={handleGeolocate}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              activeId === 'gps'
+                ? 'bg-[#8B3A0F] text-white'
+                : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
+            }`}
+          >
+            📍 {gpsLabel}
+          </button>
+          {spots.map((spot) => (
+            <button
+              key={spot.id}
+              onClick={() => setActiveId(spot.id)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                spot.id === activeId
+                  ? 'bg-[#8B3A0F] text-white'
+                  : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
+              }`}
+            >
+              {spot.name}
+            </button>
+          ))}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium border border-dashed border-[var(--color-border)] text-[var(--color-text-3)]"
+          >
+            + Spot
+          </button>
+        </div>
       </div>
 
-      {loading && !data && <SkeletonActivity />}
+      {!activeLocation && (
+        <div className="mx-4 p-6 text-center text-sm text-[var(--color-text-2)] rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)]">
+          {spots.length === 0
+            ? 'Ajoutez vos spots favoris avec + ou touchez 📍 Ma position'
+            : 'Sélectionnez un spot ou touchez 📍 Ma position'}
+        </div>
+      )}
+
+      {loading && !data && activeLocation && <SkeletonActivity />}
 
       {error && !data && (
         <div className="px-4">
@@ -106,12 +203,12 @@ export default function VttView({ cities, t, lang, windUnit, onUpdateTimestamp, 
           <ActivityHeroCard
             dayData={dayData} scoreResult={scoreResult} color={VTT_COLOR}
             lang={lang} windUnit={windUnit} t={t}
-            locationName={activeCity?.name}
+            locationName={activeLocation?.name}
             selectedDate={data?.daily?.time?.[dayIndex] ?? null}
           />
 
           {dayData && (
-            <div className="mx-4 grid grid-cols-2 gap-3">
+            <div className="mx-4 grid grid-cols-2 gap-2">
               <MetricCard
                 icon="💨" sub={windDirection(dayData.winddirection)}
                 label={t('wind')} value={formatWind(dayData.windspeed, windUnit)}
@@ -132,16 +229,7 @@ export default function VttView({ cities, t, lang, windUnit, onUpdateTimestamp, 
             </div>
           )}
 
-          <ActivityHoursTable
-            hours={dayData?.hours}
-            windUnit={windUnit}
-            t={t}
-            scoreFunc={(h) => computeVttScore({
-              windspeed: h.windspeed, windgusts: h.windgusts,
-              rainProb: h.rainProb, recentPrecipMm,
-              temperature: h.temp, weathercode: h.weathercode, uvIndex: h.uvIndex,
-            })}
-          />
+          <ActivityHoursTable hours={dayData?.hours} windUnit={windUnit} t={t} />
 
           <div className="px-4 pb-4">
             <button
@@ -155,6 +243,16 @@ export default function VttView({ cities, t, lang, windUnit, onUpdateTimestamp, 
           </div>
         </>
       )}
+
+      {showAddModal && (
+        <AddLocationModal
+          type="city"
+          onAdd={addSpot}
+          onClose={() => setShowAddModal(false)}
+          t={t}
+          existingIds={spots.map((s) => s.id)}
+        />
+      )}
     </div>
   );
 }
@@ -163,7 +261,7 @@ function SkeletonActivity() {
   return (
     <div className="mx-4 animate-pulse flex flex-col gap-4">
       <div className="bg-[var(--color-surface-2)] rounded-2xl h-48" />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         {[0, 1, 2, 3].map((i) => <div key={i} className="bg-[var(--color-surface-2)] rounded-xl h-16" />)}
       </div>
     </div>
