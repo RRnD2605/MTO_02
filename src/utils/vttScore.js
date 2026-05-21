@@ -45,7 +45,7 @@ export function computeVttScore({ windspeed, windgusts, rainProb, recentPrecipMm
   else if (uv <= 10) uvScore = 5;
   else              uvScore = 2;
 
-  const total = Math.round(Math.max(0, Math.min(100, soilScore + rainScore + windScore + tempScore + uvScore)));
+  const total = Math.round(Math.max(0, Math.min(95, soilScore + rainScore + windScore + tempScore + uvScore)));
 
   const stormSignals = [rp > 60, wg > 50, wc >= 80].filter(Boolean).length;
   let stormRisk = 'none';

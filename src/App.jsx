@@ -22,7 +22,7 @@ function getInitialEnabledTabs() {
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch {}
-  return ['cities', 'golf', 'rando'];
+  return ['cities', 'golf', 'rando', 'vtt'];
 }
 
 function getInitialWindUnit() {

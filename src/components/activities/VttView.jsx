@@ -11,10 +11,10 @@ import { computeVttScore } from '../../utils/vttScore.js';
 const VTT_COLOR = '#8B3A0F';
 
 function uvLabel(uv) {
-  if (uv <= 2) return '🟢 Faible';
-  if (uv <= 5) return '🟡 Modéré';
-  if (uv <= 7) return '🟠 Élevé';
-  return '🔴 Très élevé';
+  if (uv <= 2) return 'Faible';
+  if (uv <= 5) return 'Modéré';
+  if (uv <= 7) return 'Élevé';
+  return 'Très élevé';
 }
 
 function MetricCard({ icon, sub, label, value, extra, accent }) {
@@ -103,7 +103,12 @@ export default function VttView({ cities, t, lang, windUnit, onUpdateTimestamp, 
         <>
           <DaySelector dates={data.daily.time} selectedIndex={dayIndex} onSelect={setDayIndex} t={t} />
           <StormAlert stormRisk={stormRisk} t={t} />
-          <ActivityHeroCard dayData={dayData} scoreResult={scoreResult} color={VTT_COLOR} lang={lang} windUnit={windUnit} t={t} />
+          <ActivityHeroCard
+            dayData={dayData} scoreResult={scoreResult} color={VTT_COLOR}
+            lang={lang} windUnit={windUnit} t={t}
+            locationName={activeCity?.name}
+            selectedDate={data?.daily?.time?.[dayIndex] ?? null}
+          />
 
           {dayData && (
             <div className="mx-4 grid grid-cols-2 gap-3">

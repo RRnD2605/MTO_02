@@ -40,7 +40,7 @@ export function computeRandoScore({ windspeed, windgusts, rainProb, temperature,
   else if (uv <= 10) uvScore = 8;
   else              uvScore = 3;
 
-  const total = Math.round(Math.max(0, Math.min(100, windScore + rainScore + tempScore + visScore + uvScore)));
+  const total = Math.round(Math.max(0, Math.min(95, windScore + rainScore + tempScore + visScore + uvScore)));
 
   // Storm risk
   const stormSignals = [rp > 60, wg > 50, wc >= 80].filter(Boolean).length;
