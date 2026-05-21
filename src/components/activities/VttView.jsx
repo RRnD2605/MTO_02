@@ -60,9 +60,14 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx })
   const [gpsCoords, setGpsCoords] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const activeLocation = activeId === 'gps'
-    ? (gpsCoords ? { id: 'gps', name: gpsLabel, latitude: gpsCoords.lat, longitude: gpsCoords.lon } : null)
-    : spots.find((s) => s.id === activeId) || null;
+  const activeLocation = useMemo(() => {
+    if (activeId === 'gps') {
+      if (!gpsCoords) return null;
+      return { id: `gps-${gpsCoords.lat.toFixed(4)}-${gpsCoords.lon.toFixed(4)}`, name: gpsLabel, lat: gpsCoords.lat, lon: gpsCoords.lon };
+    }
+    const spot = spots.find((s) => s.id === activeId);
+    return spot ? { ...spot, lat: spot.latitude ?? spot.lat, lon: spot.longitude ?? spot.lon } : null;
+  }, [activeId, gpsCoords, gpsLabel, spots]);
 
   const { data, loading, error, updatedAt, refresh } = useWeather(activeLocation, 'activity');
 
