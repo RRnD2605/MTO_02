@@ -8,6 +8,7 @@ import VttView from './components/activities/VttView.jsx';
 import SettingsView from './components/settings/SettingsView.jsx';
 import { useI18n } from './hooks/useI18n.js';
 import { useLocations } from './hooks/useLocations.js';
+import { useSpots } from './hooks/useSpots.js';
 
 const LS_WIND_KEY = 'meteo_golf_wind_unit_v1';
 const LS_NAV_TABS_KEY = 'meteo_nav_tabs_v1';
@@ -42,6 +43,8 @@ export default function App() {
     addCity, removeCity, setCities,
     addGolf, removeGolf, setGolfs,
   } = useLocations();
+  const { spots: randoSpots, addSpot: addRandoSpot, removeSpot: removeRandoSpot } = useSpots('meteo_rando_spots_v1');
+  const { spots: vttSpots, addSpot: addVttSpot, removeSpot: removeVttSpot } = useSpots('meteo_vtt_spots_v1');
   const [windUnit, setWindUnitState] = useState(getInitialWindUnit);
 
   const updateRef = useRef({ updatedAt: null, refresh: null });
@@ -90,8 +93,8 @@ export default function App() {
       <main className="max-w-lg mx-auto" style={{ overflowX: 'hidden' }}>
         {tab === 'cities' && <CityView cities={cities} {...sharedProps} />}
         {tab === 'golf'   && <GolfView golfs={golfs}   {...sharedProps} />}
-        {tab === 'rando'  && <RandoView cities={cities} {...sharedProps} onGpx={() => {}} />}
-        {tab === 'vtt'    && <VttView   cities={cities} {...sharedProps} onGpx={() => {}} />}
+        {tab === 'rando'  && <RandoView spots={randoSpots} addSpot={addRandoSpot} removeSpot={removeRandoSpot} {...sharedProps} onGpx={() => {}} />}
+        {tab === 'vtt'    && <VttView   spots={vttSpots}  addSpot={addVttSpot}   removeSpot={removeVttSpot}  {...sharedProps} onGpx={() => {}} />}
         {tab === 'settings' && (
           <SettingsView
             cities={cities}
@@ -102,6 +105,10 @@ export default function App() {
             addGolf={addGolf}
             removeGolf={removeGolf}
             setGolfs={setGolfs}
+            randoSpots={randoSpots}
+            removeRandoSpot={removeRandoSpot}
+            vttSpots={vttSpots}
+            removeVttSpot={removeVttSpot}
             lang={lang}
             setLang={setLang}
             windUnit={windUnit}

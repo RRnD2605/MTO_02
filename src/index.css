@@ -75,3 +75,7 @@ body {
 .safe-bottom {
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
+
+input, select, textarea {
+  font-size: 16px;
+}

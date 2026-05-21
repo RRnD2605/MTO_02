@@ -1,15 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import DaySelector from '../city/DaySelector.jsx';
 import ActivityHeroCard from './ActivityHeroCard.jsx';
 import ActivityHoursTable from './ActivityHoursTable.jsx';
 import StormAlert from './StormAlert.jsx';
-import AddLocationModal from '../settings/AddLocationModal.jsx';
+import AddSpotModal from './AddSpotModal.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { parseActivityDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
 import { computeVttScore } from '../../utils/vttScore.js';
 
 const VTT_COLOR = '#8B3A0F';
-const LS_VTT_SPOTS = 'meteo_vtt_spots_v1';
 
 function uvLabel(uv) {
   if (uv <= 2) return 'Faible';
@@ -34,31 +33,13 @@ function MetricCard({ icon, sub, label, value, extra, accent }) {
   );
 }
 
-function useSpots(storageKey) {
-  const [spots, setSpotsState] = useState(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      return stored ? JSON.parse(stored) : [];
-    } catch { return []; }
-  });
-  const persist = (next) => {
-    setSpotsState(next);
-    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
-  };
-  return {
-    spots,
-    addSpot: (s) => persist([...spots, s]),
-    removeSpot: (id) => persist(spots.filter((s) => s.id !== id)),
-  };
-}
-
-export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx }) {
-  const { spots, addSpot } = useSpots(LS_VTT_SPOTS);
+export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx, spots, addSpot, removeSpot }) {
   const [activeId, setActiveId] = useState('gps');
   const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
   const [gpsLabel, setGpsLabel] = useState('Ma position');
   const [gpsCoords, setGpsCoords] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const longPressTimer = useRef(null);
 
   const activeLocation = useMemo(() => {
     if (activeId === 'gps') {
@@ -66,7 +47,7 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx })
       return { id: `gps-${gpsCoords.lat.toFixed(4)}-${gpsCoords.lon.toFixed(4)}`, name: gpsLabel, lat: gpsCoords.lat, lon: gpsCoords.lon };
     }
     const spot = spots.find((s) => s.id === activeId);
-    return spot ? { ...spot, lat: spot.latitude ?? spot.lat, lon: spot.longitude ?? spot.lon } : null;
+    return spot || null;
   }, [activeId, gpsCoords, gpsLabel, spots]);
 
   const { data, loading, error, updatedAt, refresh } = useWeather(activeLocation, 'activity');
@@ -105,6 +86,11 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx })
   const gusts = currentHourData?.windgusts ?? (dayData?.windspeed ?? 0) * 1.3;
   const feelsLike = currentHourData?.apparentTemp ?? dayData?.maxTemp ?? 0;
   const soilLabelKey = scoreResult?.soilLabel ?? 'soil.dry';
+
+  function handleDeleteSpot(id) {
+    removeSpot(id);
+    if (activeId === id) setActiveId('gps');
+  }
 
   async function handleGeolocate() {
     setActiveId('gps');
@@ -145,7 +131,6 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx })
 
   return (
     <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
-      {/* Onglets : GPS · spots · + Spot */}
       <div className="pt-3">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 pb-1">
           <button
@@ -162,6 +147,10 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx })
             <button
               key={spot.id}
               onClick={() => setActiveId(spot.id)}
+              onContextMenu={(e) => { e.preventDefault(); handleDeleteSpot(spot.id); }}
+              onTouchStart={() => { longPressTimer.current = setTimeout(() => handleDeleteSpot(spot.id), 600); }}
+              onTouchEnd={() => clearTimeout(longPressTimer.current)}
+              onTouchMove={() => clearTimeout(longPressTimer.current)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 spot.id === activeId
                   ? 'bg-[#8B3A0F] text-white'
@@ -250,11 +239,10 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx })
       )}
 
       {showAddModal && (
-        <AddLocationModal
-          type="city"
+        <AddSpotModal
+          color={VTT_COLOR}
           onAdd={addSpot}
           onClose={() => setShowAddModal(false)}
-          t={t}
           existingIds={spots.map((s) => s.id)}
         />
       )}

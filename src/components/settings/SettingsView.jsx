@@ -14,6 +14,8 @@ export default function SettingsView({
   cities, golfs,
   addCity, removeCity, setCities,
   addGolf, removeGolf, setGolfs,
+  randoSpots, removeRandoSpot,
+  vttSpots, removeVttSpot,
   lang, setLang,
   windUnit, setWindUnit,
   enabledTabs, toggleTab, allContentTabs,
@@ -72,6 +74,60 @@ export default function SettingsView({
         />
         <AddButton onClick={() => setModal('golf')} label={t('add.golf')} color="golf" />
       </Section>
+
+      {/* Spots Rando */}
+      {enabledTabs.includes('rando') && (
+        <Section title="Spots Rando">
+          <div className="flex flex-col rounded-xl overflow-hidden border border-[var(--color-border)]">
+            {randoSpots.length === 0 ? (
+              <div className="px-4 py-3 bg-[var(--color-surface)] text-xs text-[var(--color-text-3)]">
+                Aucun spot sauvegardé
+              </div>
+            ) : randoSpots.map((spot) => (
+              <div key={spot.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--color-surface)] border-b last:border-b-0 border-[var(--color-border)]">
+                <span className="flex-1 text-sm text-[var(--color-text)] truncate">{spot.name}</span>
+                <button
+                  onClick={() => removeRandoSpot(spot.id)}
+                  className="w-6 h-6 rounded-full bg-[#D94F4F] flex items-center justify-center flex-shrink-0"
+                  aria-label="Supprimer"
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" stroke="white" strokeWidth="2" strokeLinecap="round">
+                    <line x1="2" y1="2" x2="8" y2="8"/>
+                    <line x1="8" y1="2" x2="2" y2="8"/>
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Spots VTT */}
+      {enabledTabs.includes('vtt') && (
+        <Section title="Spots VTT">
+          <div className="flex flex-col rounded-xl overflow-hidden border border-[var(--color-border)]">
+            {vttSpots.length === 0 ? (
+              <div className="px-4 py-3 bg-[var(--color-surface)] text-xs text-[var(--color-text-3)]">
+                Aucun spot sauvegardé
+              </div>
+            ) : vttSpots.map((spot) => (
+              <div key={spot.id} className="flex items-center gap-3 px-4 py-3 bg-[var(--color-surface)] border-b last:border-b-0 border-[var(--color-border)]">
+                <span className="flex-1 text-sm text-[var(--color-text)] truncate">{spot.name}</span>
+                <button
+                  onClick={() => removeVttSpot(spot.id)}
+                  className="w-6 h-6 rounded-full bg-[#D94F4F] flex items-center justify-center flex-shrink-0"
+                  aria-label="Supprimer"
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" stroke="white" strokeWidth="2" strokeLinecap="round">
+                    <line x1="2" y1="2" x2="8" y2="8"/>
+                    <line x1="8" y1="2" x2="2" y2="8"/>
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Unité de vent */}
       <Section title={t('settings.wind.unit')}>
