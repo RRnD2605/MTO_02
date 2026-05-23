@@ -43,6 +43,40 @@ export function useGeolocate() {
     }
   }, []);
 
+  // Silent background geoloc — does not set gpsActive until coords arrive.
+  // Safe to call from useEffect: never blocks render, no immediate state change.
+  const autoGeolocate = useCallback(() => {
+    if (!navigator.geolocation) return () => {};
+    const timer = setTimeout(() => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude: lat, longitude: lon } = pos.coords;
+          setGpsCoords({ lat, lon });
+          setGpsActive(true);
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+              { headers: { 'Accept-Language': 'fr' } }
+            );
+            const json = await res.json();
+            const name =
+              json.address?.village ||
+              json.address?.town ||
+              json.address?.city ||
+              json.address?.municipality ||
+              'Local';
+            setGpsLabel(name);
+          } catch {
+            setGpsLabel('Local');
+          }
+        },
+        () => { /* permission denied or error — stay silent */ },
+        { timeout: 8000, maximumAge: 60000 }
+      );
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const gpsLocation = gpsCoords
     ? {
         id: `gps-${gpsCoords.lat.toFixed(4)}-${gpsCoords.lon.toFixed(4)}`,
@@ -52,5 +86,5 @@ export function useGeolocate() {
       }
     : null;
 
-  return { gpsLabel, gpsCoords, gpsActive, setGpsActive, geolocate, gpsLocation };
+  return { gpsLabel, gpsCoords, gpsActive, setGpsActive, geolocate, autoGeolocate, gpsLocation };
 }

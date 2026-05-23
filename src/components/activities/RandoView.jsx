@@ -41,12 +41,9 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, spots,
   const [showAddModal, setShowAddModal] = useState(false);
   const [showGpxImport, setShowGpxImport] = useState(false);
   const longPressTimer = useRef(null);
-  const { gpsLabel, gpsActive, setGpsActive, geolocate, gpsLocation } = useGeolocate();
+  const { gpsLabel, gpsActive, setGpsActive, geolocate, autoGeolocate, gpsLocation } = useGeolocate();
 
-  // Auto-geolocate on mount if no spot selected
-  useEffect(() => {
-    geolocate();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => autoGeolocate(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeLocation = useMemo(() => {
     if (gpsActive) return gpsLocation;
