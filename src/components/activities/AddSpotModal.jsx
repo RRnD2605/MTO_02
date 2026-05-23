@@ -14,11 +14,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-function MapController({ target }) {
+function MapController({ center }) {
   const map = useMap();
   useEffect(() => {
-    if (target) map.setView(target, 13, { animate: true });
-  }, [target, map]);
+    if (center) map.setView(center, 13);
+  }, [center, map]);
   return null;
 }
 
@@ -39,7 +39,7 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
 
   const [userPos, setUserPos] = useState(null);
   const [markerPos, setMarkerPos] = useState(null);
-  const [mapTarget, setMapTarget] = useState(null);
+  const [gpsTarget, setGpsTarget] = useState(null);
 
   const [manualLat, setManualLat] = useState('');
   const [manualLon, setManualLon] = useState('');
@@ -51,7 +51,7 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
       (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
         setUserPos({ lat, lon });
-        setMapTarget([lat, lon]);
+        setGpsTarget([lat, lon]);
       },
       undefined,
       { timeout: 5000 }
@@ -76,7 +76,6 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
     setSelected(r);
     setSpotName(r.name);
     setMarkerPos([r.lat, r.lon]);
-    setMapTarget([r.lat, r.lon]);
     setResults([]);
     setQuery('');
     setManualLat('');
@@ -176,7 +175,7 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="© OpenStreetMap"
               />
-              <MapController target={mapTarget} />
+              <MapController center={selected ? [selected.lat, selected.lon] : gpsTarget} />
               <MapClickHandler onMapClick={handleMapClick} />
               {markerPos && (
                 <Marker
