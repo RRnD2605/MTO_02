@@ -78,7 +78,7 @@ export function useGeolocate() {
 
   const gpsLocation = gpsCoords
     ? {
-        id: `gps-${gpsCoords.lat.toFixed(4)}-${gpsCoords.lon.toFixed(4)}`,
+        id: 'gps-current-location',
         name: gpsLabel,
         lat: gpsCoords.lat,
         lon: gpsCoords.lon,

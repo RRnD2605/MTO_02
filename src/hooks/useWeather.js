@@ -10,19 +10,25 @@ export function useWeather(location, type = 'city') {
 
   const fetchFn = type === 'golf' ? fetchGolfWeather : type === 'activity' ? fetchActivityWeather : fetchCityWeather;
 
+  // Use primitive dependencies so load() only recreates when the location actually changes,
+  // not on every render due to a new object reference.
+  const locationId = location?.id ?? null;
+  const lat = location?.lat ?? null;
+  const lon = location?.lon ?? null;
+
   const load = useCallback(
     async (forceRefresh = false) => {
-      if (!location) return;
+      if (!locationId || lat === null || lon === null) return;
       if (abortRef.current) abortRef.current.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 
-      if (forceRefresh) invalidateCache(location.lat, location.lon);
+      if (forceRefresh) invalidateCache(lat, lon);
 
       setLoading(true);
       setError(null);
       try {
-        const result = await fetchFn(location.lat, location.lon, controller.signal);
+        const result = await fetchFn(lat, lon, controller.signal);
         setData(result);
         setUpdatedAt(new Date());
       } catch (err) {
@@ -33,7 +39,7 @@ export function useWeather(location, type = 'city') {
         if (!controller.signal.aborted) setLoading(false);
       }
     },
-    [location, fetchFn]
+    [locationId, lat, lon, fetchFn] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   useEffect(() => {
