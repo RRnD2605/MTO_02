@@ -84,6 +84,10 @@ export default function App() {
     if (updateRef.current.refresh) updateRef.current.refresh();
   }, []);
 
+  const handleCloseGpx = useCallback(() => {
+    setShowGpxImport(false);
+  }, []);
+
   const sharedProps = { t, lang, windUnit, onUpdateTimestamp: handleUpdateTimestamp };
 
   return (
@@ -131,7 +135,7 @@ export default function App() {
       {showGpxImport && (
         <GpxImportScreen
           activity={gpxActivity}
-          onClose={() => setShowGpxImport(false)}
+          onClose={handleCloseGpx}
           t={t}
           lang={lang}
           windUnit={windUnit}

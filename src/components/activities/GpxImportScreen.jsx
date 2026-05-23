@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, memo } from 'react';
 import { parseGpxFile, sampleWeatherPoints, fetchWeatherForPoints } from '../../utils/gpx-parser.js';
 import { computeRandoScore } from '../../utils/randoScore.js';
 import { computeVttScore } from '../../utils/vttScore.js';
@@ -27,7 +27,7 @@ function toLocalDatetimeInput(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-export default function GpxImportScreen({ activity, onClose, t, lang, windUnit }) {
+function GpxImportScreen({ activity, onClose, t, lang, windUnit }) {
   const color = ACTIVITY_COLORS[activity] ?? '#1B4D3E';
   const inputRef = useRef(null);
 
@@ -291,3 +291,5 @@ export default function GpxImportScreen({ activity, onClose, t, lang, windUnit }
     </div>
   );
 }
+
+export default memo(GpxImportScreen);
