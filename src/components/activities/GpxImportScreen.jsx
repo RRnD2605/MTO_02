@@ -27,7 +27,7 @@ function toLocalDatetimeInput(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function GpxImportScreen({ activity, onClose, t, lang, windUnit, visible }) {
+function GpxImportScreen({ activity, onClose, t, lang, windUnit, visible, saveTrace }) {
   if (!visible) return null;
   const color = ACTIVITY_COLORS[activity] ?? '#1B4D3E';
   const inputRef = useRef(null);
@@ -82,6 +82,15 @@ function GpxImportScreen({ activity, onClose, t, lang, windUnit, visible }) {
       const results = await fetchWeatherForPoints(pts);
       setWeatherPoints(results);
       setStep('results');
+      saveTrace?.({
+        name: gpxData.name,
+        originalName: gpxData.name,
+        distance: gpxData.totalDistKm,
+        elevationGain: gpxData.elevGain,
+        altMax: gpxData.altMax ?? 0,
+        pointsCount: pts.length,
+        activity,
+      });
     } catch (e) {
       setFetchError(e.message || t('error'));
       setStep('config');

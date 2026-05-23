@@ -5,7 +5,9 @@ import ActivityHoursTable from './ActivityHoursTable.jsx';
 import StormAlert from './StormAlert.jsx';
 import AddSpotModal from './AddSpotModal.jsx';
 import GpxImportScreen from './GpxImportScreen.jsx';
+import TraceRow from './TraceRow.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
+import { useTraces } from '../../hooks/useTraces.js';
 import { useGeolocate } from '../../hooks/useGeolocate.js';
 import { parseActivityDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
 import { computeRandoScore } from '../../utils/randoScore.js';
@@ -42,6 +44,7 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, spots,
   const [showTrace, setShowTrace] = useState(false);
   const longPressTimer = useRef(null);
   const { gpsLabel, gpsActive, setGpsActive, geolocate, autoGeolocate, gpsLocation } = useGeolocate();
+  const { traces, saveTrace, renameTrace, deleteTrace } = useTraces('rando');
 
   useEffect(() => {
     const cleanup = autoGeolocate();
@@ -227,6 +230,35 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, spots,
               </button>
             </div>
             <div className="flex-1 overflow-y-auto">
+              {/* Tracés récents */}
+              <div className="px-4 pt-4 pb-2">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-3)] mb-2">
+                  Tracés récents
+                </p>
+                {traces.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {traces.map((trace) => (
+                      <TraceRow
+                        key={trace.id}
+                        trace={trace}
+                        color={RANDO_COLOR}
+                        onDelete={() => deleteTrace(trace.id)}
+                        onRename={(newName) => renameTrace(trace.id, newName)}
+                        onSelect={() => {}}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[var(--color-text-3)] text-center py-3">
+                    Aucune trace récente — importez un fichier GPX
+                  </p>
+                )}
+                {traces.length > 0 && (
+                  <p className="text-[10px] text-[var(--color-text-3)] text-center mt-2">
+                    Appui long sur un tracé pour le renommer
+                  </p>
+                )}
+              </div>
               <GpxImportScreen
                 activity="rando"
                 onClose={() => setShowTrace(false)}
@@ -234,6 +266,7 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, spots,
                 lang={lang}
                 windUnit={windUnit}
                 visible
+                saveTrace={saveTrace}
               />
             </div>
           </div>

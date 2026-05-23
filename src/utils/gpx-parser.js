@@ -45,7 +45,7 @@ export async function parseGpxFile(file) {
     return point;
   });
 
-  return { name, points, totalDistKm: totalDist, elevGain: Math.round(elevGain), elevLoss: Math.round(elevLoss) };
+  return { name, points, totalDistKm: totalDist, elevGain: Math.round(elevGain), elevLoss: Math.round(elevLoss), altMax: Math.round(Math.max(...points.map(p => p.ele))) };
 }
 
 export function sampleWeatherPoints(gpxData, nbPoints, departureTime, durationMinutes) {
