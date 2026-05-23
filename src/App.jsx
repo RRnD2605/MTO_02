@@ -132,15 +132,14 @@ export default function App() {
         <BottomBar onRefresh={handleRefresh} updatedAt={updatedAt} t={t} />
       )}
 
-      {showGpxImport && (
-        <GpxImportScreen
-          activity={gpxActivity}
-          onClose={handleCloseGpx}
-          t={t}
-          lang={lang}
-          windUnit={windUnit}
-        />
-      )}
+      <GpxImportScreen
+        activity={gpxActivity}
+        onClose={handleCloseGpx}
+        t={t}
+        lang={lang}
+        windUnit={windUnit}
+        visible={showGpxImport}
+      />
     </div>
   );
 }

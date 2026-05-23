@@ -27,7 +27,8 @@ function toLocalDatetimeInput(date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function GpxImportScreen({ activity, onClose, t, lang, windUnit }) {
+function GpxImportScreen({ activity, onClose, t, lang, windUnit, visible }) {
+  if (!visible) return null;
   const color = ACTIVITY_COLORS[activity] ?? '#1B4D3E';
   const inputRef = useRef(null);
 
