@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { searchOutdoorSpots } from '../../services/geocodingService.js';
 
 // Fix Leaflet marker icons in Vite
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
 });
 
 function MapController({ target }) {
@@ -162,7 +165,7 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
           )}
 
           {/* Carte Leaflet */}
-          <div className="rounded-xl overflow-hidden border border-[var(--color-border)]" style={{ height: 200 }}>
+          <div className="rounded-xl overflow-hidden border border-[var(--color-border)]" style={{ height: '200px', width: '100%' }}>
             <MapContainer
               center={mapCenter}
               zoom={mapZoom}
