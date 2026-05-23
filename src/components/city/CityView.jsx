@@ -1,18 +1,23 @@
 import { useState, useEffect, useMemo } from 'react';
-import LocationTabs from '../shared/LocationTabs.jsx';
 import CityHeroCard from './CityHeroCard.jsx';
 import DaySelector from './DaySelector.jsx';
 import DaySlots from './DaySlots.jsx';
 import ForecastList from './ForecastList.jsx';
 import RainDrop from '../shared/RainDrop.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
+import { useGeolocate } from '../../hooks/useGeolocate.js';
 import { parseDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
 
 export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp }) {
   const [activeId, setActiveId] = useState(cities[0]?.id);
   const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
+  const { gpsLabel, gpsActive, setGpsActive, geolocate, gpsLocation } = useGeolocate();
 
-  const activeCity = cities.find((c) => c.id === activeId) || cities[0];
+  const activeCity = useMemo(() => {
+    if (gpsActive) return gpsLocation;
+    return cities.find((c) => c.id === activeId) || cities[0] || null;
+  }, [gpsActive, gpsLocation, activeId, cities]);
+
   const { data, loading, error, updatedAt, refresh } = useWeather(activeCity, 'city');
 
   useEffect(() => {
@@ -26,12 +31,31 @@ export default function CityView({ cities, t, lang, windUnit, onUpdateTimestamp 
   return (
     <div className="flex flex-col gap-2 pb-20 overflow-hidden bg-[var(--color-bg)]">
       <div className="pt-3">
-        <LocationTabs
-          locations={cities}
-          activeId={activeId}
-          onSelect={(id) => { setActiveId(id); setDayIndex(getInitialDayIndex()); }}
-          accentClass="bg-[var(--color-city)] text-white"
-        />
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 pb-1">
+          <button
+            onClick={() => { geolocate(); setDayIndex(getInitialDayIndex()); }}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              gpsActive
+                ? 'bg-[var(--color-city)] text-white'
+                : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
+            }`}
+          >
+            📍 {gpsLabel}
+          </button>
+          {cities.map((loc) => (
+            <button
+              key={loc.id}
+              onClick={() => { setGpsActive(false); setActiveId(loc.id); setDayIndex(getInitialDayIndex()); }}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                !gpsActive && loc.id === activeId
+                  ? 'bg-[var(--color-city)] text-white'
+                  : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
+              }`}
+            >
+              {loc.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading && !data && <SkeletonCity />}

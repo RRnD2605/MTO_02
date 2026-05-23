@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import LocationTabs from '../shared/LocationTabs.jsx';
+import { useGeolocate } from '../../hooks/useGeolocate.js';
 import GolfHeroCard from './GolfHeroCard.jsx';
 import TeeTimeSelector from './TeeTimeSelector.jsx';
 import MetricsGrid from './MetricsGrid.jsx';
@@ -245,8 +245,11 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
   const [startMin, setStartMin] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const { gpsLabel, gpsActive, setGpsActive, geolocate, gpsLocation } = useGeolocate();
 
-  const activeGolf = golfs.find((g) => g.id === activeId) || golfs[0];
+  const activeGolf = gpsActive
+    ? gpsLocation
+    : golfs.find((g) => g.id === activeId) || golfs[0] || null;
   const { data, loading, error, updatedAt, refresh } = useWeather(activeGolf, 'golf');
   const { games, addGame, deleteGame } = useGames();
 
@@ -386,12 +389,31 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
   return (
     <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
       <div className="pt-3">
-        <LocationTabs
-          locations={golfs}
-          activeId={activeId}
-          onSelect={(id) => { setActiveId(id); setDayIndex(getInitialDayIndex()); setShowWeekView(false); }}
-          accentClass="bg-[var(--color-golf)] text-white"
-        />
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 pb-1">
+          <button
+            onClick={() => { geolocate(); setDayIndex(getInitialDayIndex()); setShowWeekView(false); }}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              gpsActive
+                ? 'bg-[var(--color-golf)] text-white'
+                : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
+            }`}
+          >
+            📍 {gpsLabel}
+          </button>
+          {golfs.map((g) => (
+            <button
+              key={g.id}
+              onClick={() => { setGpsActive(false); setActiveId(g.id); setDayIndex(getInitialDayIndex()); setShowWeekView(false); }}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                !gpsActive && g.id === activeId
+                  ? 'bg-[var(--color-golf)] text-white'
+                  : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
+              }`}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading && !data && <SkeletonGolf />}

@@ -5,6 +5,7 @@ import ActivityHoursTable from './ActivityHoursTable.jsx';
 import StormAlert from './StormAlert.jsx';
 import AddSpotModal from './AddSpotModal.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
+import { useGeolocate } from '../../hooks/useGeolocate.js';
 import { parseActivityDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
 import { computeVttScore } from '../../utils/vttScore.js';
 
@@ -34,21 +35,17 @@ function MetricCard({ icon, sub, label, value, extra, accent }) {
 }
 
 export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx, spots, addSpot, removeSpot }) {
-  const [activeId, setActiveId] = useState('gps');
+  const [activeSpotId, setActiveSpotId] = useState(null);
   const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
-  const [gpsLabel, setGpsLabel] = useState('Ma position');
-  const [gpsCoords, setGpsCoords] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const longPressTimer = useRef(null);
+  const { gpsLabel, gpsActive, setGpsActive, geolocate, gpsLocation } = useGeolocate();
 
   const activeLocation = useMemo(() => {
-    if (activeId === 'gps') {
-      if (!gpsCoords) return null;
-      return { id: `gps-${gpsCoords.lat.toFixed(4)}-${gpsCoords.lon.toFixed(4)}`, name: gpsLabel, lat: gpsCoords.lat, lon: gpsCoords.lon };
-    }
-    const spot = spots.find((s) => s.id === activeId);
-    return spot || null;
-  }, [activeId, gpsCoords, gpsLabel, spots]);
+    if (gpsActive) return gpsLocation;
+    if (activeSpotId) return spots.find((s) => s.id === activeSpotId) || null;
+    return null;
+  }, [gpsActive, gpsLocation, activeSpotId, spots]);
 
   const { data, loading, error, updatedAt, refresh } = useWeather(activeLocation, 'activity');
 
@@ -89,44 +86,7 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx, s
 
   function handleDeleteSpot(id) {
     removeSpot(id);
-    if (activeId === id) setActiveId('gps');
-  }
-
-  async function handleGeolocate() {
-    setActiveId('gps');
-    setGpsLabel('Localisation...');
-    if (!navigator.geolocation) {
-      setGpsLabel('GPS non disponible');
-      return;
-    }
-    try {
-      const pos = await new Promise((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-        })
-      );
-      const { latitude, longitude } = pos.coords;
-      setGpsCoords({ lat: latitude, lon: longitude });
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-          { headers: { 'Accept-Language': 'fr' } }
-        );
-        const json = await res.json();
-        const name = json.address?.village
-          || json.address?.town
-          || json.address?.city
-          || json.address?.municipality
-          || 'Ma position';
-        setGpsLabel(name);
-      } catch {
-        setGpsLabel('Ma position');
-      }
-    } catch (err) {
-      setGpsLabel('Position indisponible');
-      console.error(err);
-    }
+    if (activeSpotId === id) setActiveSpotId(null);
   }
 
   return (
@@ -134,9 +94,9 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx, s
       <div className="pt-3">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 pb-1">
           <button
-            onClick={handleGeolocate}
+            onClick={() => { geolocate(); setActiveSpotId(null); }}
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              activeId === 'gps'
+              gpsActive
                 ? 'bg-[#8B3A0F] text-white'
                 : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
             }`}
@@ -146,13 +106,13 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx, s
           {spots.map((spot) => (
             <button
               key={spot.id}
-              onClick={() => setActiveId(spot.id)}
+              onClick={() => { setGpsActive(false); setActiveSpotId(spot.id); }}
               onContextMenu={(e) => { e.preventDefault(); handleDeleteSpot(spot.id); }}
               onTouchStart={() => { longPressTimer.current = setTimeout(() => handleDeleteSpot(spot.id), 600); }}
               onTouchEnd={() => clearTimeout(longPressTimer.current)}
               onTouchMove={() => clearTimeout(longPressTimer.current)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                spot.id === activeId
+                !gpsActive && spot.id === activeSpotId
                   ? 'bg-[#8B3A0F] text-white'
                   : 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]'
               }`}
@@ -172,8 +132,8 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onGpx, s
       {!activeLocation && (
         <div className="mx-4 p-6 text-center text-sm text-[var(--color-text-2)] rounded-xl bg-[var(--color-surface-2)] border border-[var(--color-border)]">
           {spots.length === 0
-            ? 'Ajoutez vos spots favoris avec + ou touchez 📍 Ma position'
-            : 'Sélectionnez un spot ou touchez 📍 Ma position'}
+            ? 'Ajoutez vos spots favoris avec + ou touchez 📍 Local'
+            : 'Sélectionnez un spot ou touchez 📍 Local'}
         </div>
       )}
 

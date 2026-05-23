@@ -132,4 +132,6 @@ export default {
   'gpx.new': 'Nouvelle analyse',
   'gpx.error.not.gpx': 'Veuillez sélectionner un fichier .gpx',
   'gpx.error.parse': 'Impossible de lire le fichier GPX',
+
+  'gps.label': 'Local',
 };
