@@ -4,6 +4,7 @@ import ActivityHeroCard from './ActivityHeroCard.jsx';
 import ActivityHoursTable from './ActivityHoursTable.jsx';
 import StormAlert from './StormAlert.jsx';
 import AddSpotModal from './AddSpotModal.jsx';
+import GpxImportScreen from './GpxImportScreen.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { useGeolocate } from '../../hooks/useGeolocate.js';
 import { parseActivityDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
@@ -34,10 +35,11 @@ function MetricCard({ icon, sub, label, value, extra, accent }) {
   );
 }
 
-export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onOpenTrace, spots, addSpot, removeSpot }) {
+export default function VttView({ t, lang, windUnit, onUpdateTimestamp, spots, addSpot, removeSpot }) {
   const [activeSpotId, setActiveSpotId] = useState(null);
   const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showTrace, setShowTrace] = useState(false);
   const longPressTimer = useRef(null);
   const { gpsLabel, gpsActive, setGpsActive, geolocate, autoGeolocate, gpsLocation } = useGeolocate();
 
@@ -133,7 +135,7 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onOpenTr
           </button>
         </div>
         <button
-          onClick={onOpenTrace}
+          onClick={() => setShowTrace(true)}
           className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-[var(--color-surface-2)] rounded-xl text-xs font-medium text-[var(--color-text-2)] border border-[var(--color-border)]"
         >
           📂 Trace
@@ -205,6 +207,43 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, onOpenTr
           onClose={() => setShowAddModal(false)}
           existingIds={spots.map((s) => s.id)}
         />
+      )}
+
+      {showTrace && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col justify-end"
+          style={{ background: 'rgba(0,0,0,0.45)' }}
+          onClick={() => setShowTrace(false)}
+        >
+          <div
+            className="bg-[var(--color-surface)] rounded-t-2xl flex flex-col shadow-2xl overflow-hidden"
+            style={{ maxHeight: '67vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
+              <div className="w-9 h-1 bg-[var(--color-border)] rounded-full" />
+            </div>
+            <div className="flex items-center justify-between px-4 pb-3 border-b border-[var(--color-border)] flex-shrink-0">
+              <span className="text-sm font-semibold text-[var(--color-text)]">📂 Analyser une trace</span>
+              <button
+                onClick={() => setShowTrace(false)}
+                className="text-xs text-[var(--color-text-2)] bg-[var(--color-surface-2)] px-3 py-1.5 rounded-full"
+              >
+                Fermer ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <GpxImportScreen
+                activity="vtt"
+                onClose={() => setShowTrace(false)}
+                t={t}
+                lang={lang}
+                windUnit={windUnit}
+                visible
+              />
+            </div>
+          </div>
+        </div>
       )}
 
     </div>

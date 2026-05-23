@@ -5,7 +5,6 @@ import CityView from './components/city/CityView.jsx';
 import GolfView from './components/golf/GolfView.jsx';
 import RandoView from './components/activities/RandoView.jsx';
 import VttView from './components/activities/VttView.jsx';
-import GpxImportScreen from './components/activities/GpxImportScreen.jsx';
 import SettingsView from './components/settings/SettingsView.jsx';
 import { useI18n } from './hooks/useI18n.js';
 import { useLocations } from './hooks/useLocations.js';
@@ -47,8 +46,6 @@ export default function App() {
   const { spots: randoSpots, addSpot: addRandoSpot, removeSpot: removeRandoSpot } = useSpots('meteo_rando_spots_v1');
   const { spots: vttSpots, addSpot: addVttSpot, removeSpot: removeVttSpot } = useSpots('meteo_vtt_spots_v1');
   const [windUnit, setWindUnitState] = useState(getInitialWindUnit);
-  const [showGpxImport, setShowGpxImport] = useState(false);
-  const [gpxActivity, setGpxActivity] = useState(null);
 
   const updateRef = useRef({ updatedAt: null, refresh: null });
   const [updatedAt, setUpdatedAt] = useState(null);
@@ -84,10 +81,6 @@ export default function App() {
     if (updateRef.current.refresh) updateRef.current.refresh();
   }, []);
 
-  const handleCloseGpx = useCallback(() => {
-    setShowGpxImport(false);
-  }, []);
-
   const sharedProps = { t, lang, windUnit, onUpdateTimestamp: handleUpdateTimestamp };
 
   return (
@@ -100,8 +93,8 @@ export default function App() {
       <main className="max-w-lg mx-auto" style={{ overflowX: 'hidden' }}>
         {tab === 'cities' && <CityView cities={cities} {...sharedProps} />}
         {tab === 'golf'   && <GolfView golfs={golfs}   {...sharedProps} />}
-        {tab === 'rando'  && <RandoView spots={randoSpots} addSpot={addRandoSpot} removeSpot={removeRandoSpot} {...sharedProps} onOpenTrace={() => { setGpxActivity('rando'); setShowGpxImport(true); }} />}
-        {tab === 'vtt'    && <VttView   spots={vttSpots}  addSpot={addVttSpot}   removeSpot={removeVttSpot}  {...sharedProps} onOpenTrace={() => { setGpxActivity('vtt');   setShowGpxImport(true); }} />}
+        {tab === 'rando'  && <RandoView spots={randoSpots} addSpot={addRandoSpot} removeSpot={removeRandoSpot} {...sharedProps} />}
+        {tab === 'vtt'    && <VttView   spots={vttSpots}  addSpot={addVttSpot}   removeSpot={removeVttSpot}  {...sharedProps} />}
         {tab === 'settings' && (
           <SettingsView
             cities={cities}
@@ -132,14 +125,6 @@ export default function App() {
         <BottomBar onRefresh={handleRefresh} updatedAt={updatedAt} t={t} />
       )}
 
-      <GpxImportScreen
-        activity={gpxActivity}
-        onClose={handleCloseGpx}
-        t={t}
-        lang={lang}
-        windUnit={windUnit}
-        visible={showGpxImport}
-      />
     </div>
   );
 }
