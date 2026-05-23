@@ -40,8 +40,9 @@ export function useGeolocate() {
     try {
       const pos = await new Promise((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
+          enableHighAccuracy: false,
+          timeout: 8000,
+          maximumAge: 30000,
         })
       );
       const { latitude: lat, longitude: lon } = pos.coords;
