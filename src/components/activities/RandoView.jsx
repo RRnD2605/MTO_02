@@ -4,7 +4,6 @@ import ActivityHeroCard from './ActivityHeroCard.jsx';
 import ActivityHoursTable from './ActivityHoursTable.jsx';
 import StormAlert from './StormAlert.jsx';
 import AddSpotModal from './AddSpotModal.jsx';
-import GpxImportScreen from './GpxImportScreen.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { useGeolocate } from '../../hooks/useGeolocate.js';
 import { parseActivityDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
@@ -35,11 +34,10 @@ function MetricCard({ icon, sub, label, value, extra, accent }) {
   );
 }
 
-export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, spots, addSpot, removeSpot }) {
+export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, onOpenTrace, spots, addSpot, removeSpot }) {
   const [activeSpotId, setActiveSpotId] = useState(null);
   const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [showGpxImport, setShowGpxImport] = useState(false);
   const longPressTimer = useRef(null);
   const { gpsLabel, gpsActive, setGpsActive, geolocate, autoGeolocate, gpsLocation } = useGeolocate();
 
@@ -129,7 +127,7 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, spots,
           </button>
         </div>
         <button
-          onClick={() => setShowGpxImport(true)}
+          onClick={onOpenTrace}
           className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-[var(--color-surface-2)] rounded-xl text-xs font-medium text-[var(--color-text-2)] border border-[var(--color-border)]"
         >
           📂 Trace
@@ -203,15 +201,6 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, spots,
         />
       )}
 
-      {showGpxImport && (
-        <GpxImportScreen
-          activity="rando"
-          onClose={() => setShowGpxImport(false)}
-          t={t}
-          lang={lang}
-          windUnit={windUnit}
-        />
-      )}
     </div>
   );
 }
