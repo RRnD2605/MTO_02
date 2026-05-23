@@ -43,7 +43,10 @@ export default function VttView({ t, lang, windUnit, onUpdateTimestamp, spots, a
   const longPressTimer = useRef(null);
   const { gpsLabel, gpsActive, setGpsActive, geolocate, autoGeolocate, gpsLocation } = useGeolocate();
 
-  useEffect(() => autoGeolocate(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const cleanup = autoGeolocate();
+    return cleanup;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeLocation = useMemo(() => {
     if (gpsActive) return gpsLocation;

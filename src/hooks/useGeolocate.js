@@ -72,7 +72,7 @@ export function useGeolocate() {
         () => { /* permission denied or error — stay silent */ },
         { timeout: 8000, maximumAge: 60000 }
       );
-    }, 500);
+    }, 1500);
     return () => { clearTimeout(timer); controller.abort(); };
   }, []);
 
