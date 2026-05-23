@@ -96,12 +96,10 @@ export async function fetchWeatherForPoints(weatherPoints) {
       const data = await res.json();
       const idx = data.hourly.time.findIndex((t) => parseInt(t.slice(11, 13)) === hour);
       const tempRaw = idx >= 0 ? (data.hourly.temperature_2m[idx] ?? null) : null;
-      // Altitude correction: -0.6°C per 100m above sea level (assuming data is at sea level)
-      const tempCorrected = tempRaw != null ? tempRaw - (pt.ele / 100) * 0.6 : null;
       results.push({
         ...pt,
         weather: {
-          temp: tempCorrected != null ? Math.round(tempCorrected * 10) / 10 : null,
+          temp: tempRaw != null ? Math.round(tempRaw * 10) / 10 : null,
           weathercode: idx >= 0 ? (data.hourly.weathercode[idx] ?? 0) : 0,
           windspeed: idx >= 0 ? (data.hourly.windspeed_10m[idx] ?? 0) : 0,
           rainProb: idx >= 0 ? (data.hourly.precipitation_probability[idx] ?? 0) : 0,
