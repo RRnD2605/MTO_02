@@ -1,62 +1,80 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { searchOutdoorSpots } from '../../services/geocodingService.js';
 
-// Fix Leaflet marker icons in Vite
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
+const defaultIcon = L.icon({
   iconUrl: markerIcon,
   iconRetinaUrl: markerIcon2x,
   shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
 });
-
-function MapController({ center }) {
-  const map = useMap();
-  useEffect(() => {
-    if (center) map.setView(center, 13);
-  }, [center, map]);
-  return null;
-}
-
-function MapClickHandler({ onMapClick }) {
-  useMapEvents({
-    click(e) { onMapClick(e.latlng.lat, e.latlng.lng); },
-  });
-  return null;
-}
 
 export default function AddSpotModal({ onAdd, onClose, existingIds = [], color = '#27500A' }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
-
   const [selected, setSelected] = useState(null);
   const [spotName, setSpotName] = useState('');
-
   const [userPos, setUserPos] = useState(null);
-  const [markerPos, setMarkerPos] = useState(null);
-  const [gpsTarget, setGpsTarget] = useState(null);
-
   const [manualLat, setManualLat] = useState('');
   const [manualLon, setManualLon] = useState('');
   const [addError, setAddError] = useState('');
 
-  // Centre la carte sur la position GPS dès l'ouverture
+  const mapDivRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+
+  // Init map once
+  useEffect(() => {
+    if (!mapDivRef.current || mapRef.current) return;
+    const map = L.map(mapDivRef.current, { zoomControl: false }).setView([46.0, 2.5], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap',
+    }).addTo(map);
+    map.on('click', (e) => handleMapClick(e.latlng.lat, e.latlng.lng));
+    mapRef.current = map;
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      markerRef.current = null;
+    };
+  }, []);
+
+  // Centre sur GPS dès qu'il arrive
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
         const { latitude: lat, longitude: lon } = pos.coords;
         setUserPos({ lat, lon });
-        setGpsTarget([lat, lon]);
+        mapRef.current?.setView([lat, lon], 12);
       },
       undefined,
       { timeout: 5000 }
     );
   }, []);
+
+  // Déplace/crée le marqueur quand selected change
+  useEffect(() => {
+    if (!selected || !mapRef.current) return;
+    const pos = [selected.lat, selected.lon];
+    if (markerRef.current) {
+      markerRef.current.setLatLng(pos);
+    } else {
+      markerRef.current = L.marker(pos, { icon: defaultIcon, draggable: true })
+        .addTo(mapRef.current)
+        .on('dragend', (e) => {
+          const { lat, lng } = e.target.getLatLng();
+          handleMapClick(lat, lng);
+        });
+    }
+    mapRef.current.setView(pos, 13);
+  }, [selected]);
 
   // Recherche debounced
   useEffect(() => {
@@ -72,19 +90,7 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
     return () => clearTimeout(timer);
   }, [query, userPos]);
 
-  function handleSelect(r) {
-    setSelected(r);
-    setSpotName(r.name);
-    setMarkerPos([r.lat, r.lon]);
-    setResults([]);
-    setQuery('');
-    setManualLat('');
-    setManualLon('');
-    setAddError('');
-  }
-
   async function handleMapClick(lat, lon) {
-    setMarkerPos([lat, lon]);
     try {
       const res = await fetch(
         `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1&lang=fr`
@@ -104,6 +110,16 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
     setAddError('');
   }
 
+  function handleSelect(r) {
+    setSelected(r);
+    setSpotName(r.name);
+    setResults([]);
+    setQuery('');
+    setManualLat('');
+    setManualLon('');
+    setAddError('');
+  }
+
   function handleAddSpot() {
     const lat = selected?.lat ?? (manualLat !== '' ? parseFloat(manualLat) : NaN);
     const lon = selected?.lon ?? (manualLon !== '' ? parseFloat(manualLon) : NaN);
@@ -113,9 +129,6 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
     onAdd({ id, name: spotName.trim(), lat, lon });
     onClose();
   }
-
-  const mapCenter = userPos ? [userPos.lat, userPos.lon] : [46.0, 2.5];
-  const mapZoom = userPos ? 12 : 6;
 
   return (
     <div
@@ -140,7 +153,7 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
             className="w-full bg-[var(--color-surface-2)] rounded-xl px-4 py-3 text-base border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-3)] focus:outline-none"
             placeholder="Col, sommet, refuge, lac..."
             value={query}
-            onChange={(e) => { setQuery(e.target.value); setSelected(null); setAddError(''); }}
+            onChange={(e) => { setQuery(e.target.value); setAddError(''); }}
             autoFocus
           />
 
@@ -163,34 +176,12 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
             </div>
           )}
 
-          {/* Carte Leaflet */}
-          <div className="rounded-xl overflow-hidden border border-[var(--color-border)]" style={{ height: '200px', width: '100%' }}>
-            <MapContainer
-              center={mapCenter}
-              zoom={mapZoom}
-              style={{ height: '100%', width: '100%' }}
-              zoomControl={false}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="© OpenStreetMap"
-              />
-              <MapController center={selected ? [selected.lat, selected.lon] : gpsTarget} />
-              <MapClickHandler onMapClick={handleMapClick} />
-              {markerPos && (
-                <Marker
-                  position={markerPos}
-                  draggable
-                  eventHandlers={{
-                    dragend(e) {
-                      const { lat, lng } = e.target.getLatLng();
-                      handleMapClick(lat, lng);
-                    },
-                  }}
-                />
-              )}
-            </MapContainer>
-          </div>
+          {/* Carte Leaflet vanilla */}
+          <div
+            ref={mapDivRef}
+            className="rounded-xl overflow-hidden border border-[var(--color-border)]"
+            style={{ height: '200px', width: '100%' }}
+          />
           <p className="text-[10px] text-[var(--color-text-3)] text-center -mt-2">
             Tape sur la carte ou déplace le marqueur pour affiner la position
           </p>
