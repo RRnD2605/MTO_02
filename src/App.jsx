@@ -93,8 +93,8 @@ export default function App() {
       <main className="max-w-lg mx-auto" style={{ overflowX: 'hidden' }}>
         {tab === 'cities' && <CityView cities={cities} {...sharedProps} />}
         {tab === 'golf'   && <GolfView golfs={golfs}   {...sharedProps} />}
-        {tab === 'rando'  && <RandoView spots={randoSpots} addSpot={addRandoSpot} removeSpot={removeRandoSpot} {...sharedProps} onGpx={() => {}} />}
-        {tab === 'vtt'    && <VttView   spots={vttSpots}  addSpot={addVttSpot}   removeSpot={removeVttSpot}  {...sharedProps} onGpx={() => {}} />}
+        {tab === 'rando'  && <RandoView spots={randoSpots} addSpot={addRandoSpot} removeSpot={removeRandoSpot} {...sharedProps} />}
+        {tab === 'vtt'    && <VttView   spots={vttSpots}  addSpot={addVttSpot}   removeSpot={removeVttSpot}  {...sharedProps} />}
         {tab === 'settings' && (
           <SettingsView
             cities={cities}

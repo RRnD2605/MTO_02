@@ -4,6 +4,7 @@ import ActivityHeroCard from './ActivityHeroCard.jsx';
 import ActivityHoursTable from './ActivityHoursTable.jsx';
 import StormAlert from './StormAlert.jsx';
 import AddSpotModal from './AddSpotModal.jsx';
+import GpxImportScreen from './GpxImportScreen.jsx';
 import { useWeather } from '../../hooks/useWeather.js';
 import { useGeolocate } from '../../hooks/useGeolocate.js';
 import { parseActivityDayData, formatWind, windDirection, getInitialDayIndex } from '../../utils/weatherUtils.js';
@@ -34,12 +35,18 @@ function MetricCard({ icon, sub, label, value, extra, accent }) {
   );
 }
 
-export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, onGpx, spots, addSpot, removeSpot }) {
+export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, spots, addSpot, removeSpot }) {
   const [activeSpotId, setActiveSpotId] = useState(null);
   const [dayIndex, setDayIndex] = useState(getInitialDayIndex);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showGpxImport, setShowGpxImport] = useState(false);
   const longPressTimer = useRef(null);
   const { gpsLabel, gpsActive, setGpsActive, geolocate, gpsLocation } = useGeolocate();
+
+  // Auto-geolocate on mount if no spot selected
+  useEffect(() => {
+    geolocate();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeLocation = useMemo(() => {
     if (gpsActive) return gpsLocation;
@@ -85,8 +92,8 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, onGpx,
 
   return (
     <div className="flex flex-col gap-4 pb-20 overflow-hidden bg-[var(--color-bg)]">
-      <div className="pt-3">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide px-4 pb-1">
+      <div className="pt-3 flex items-center gap-2 px-4">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 flex-1">
           <button
             onClick={() => { geolocate(); setActiveSpotId(null); }}
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
@@ -121,6 +128,12 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, onGpx,
             + Spot
           </button>
         </div>
+        <button
+          onClick={() => setShowGpxImport(true)}
+          className="flex-shrink-0 flex items-center gap-1 px-3 py-1.5 bg-[var(--color-surface-2)] rounded-xl text-xs font-medium text-[var(--color-text-2)] border border-[var(--color-border)]"
+        >
+          📂 Trace
+        </button>
       </div>
 
       {!activeLocation && (
@@ -178,17 +191,6 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, onGpx,
           )}
 
           <ActivityHoursTable hours={dayData?.hours} windUnit={windUnit} t={t} />
-
-          <div className="px-4 pb-4">
-            <button
-              onClick={onGpx}
-              className="w-full py-3 rounded-xl text-sm font-medium text-white flex items-center justify-center gap-2"
-              style={{ backgroundColor: RANDO_COLOR }}
-            >
-              <span>🗺️</span>
-              <span>{t('gpx.analyze')}</span>
-            </button>
-          </div>
         </>
       )}
 
@@ -198,6 +200,16 @@ export default function RandoView({ t, lang, windUnit, onUpdateTimestamp, onGpx,
           onAdd={addSpot}
           onClose={() => setShowAddModal(false)}
           existingIds={spots.map((s) => s.id)}
+        />
+      )}
+
+      {showGpxImport && (
+        <GpxImportScreen
+          activity="rando"
+          onClose={() => setShowGpxImport(false)}
+          t={t}
+          lang={lang}
+          windUnit={windUnit}
         />
       )}
     </div>

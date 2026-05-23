@@ -46,6 +46,10 @@ function setTileLayer(map, tileRef, layer) {
   tileRef.current = L.tileLayer(url, { attribution: attr, maxZoom }).addTo(map);
 }
 
+function isInFrance(lat, lon) {
+  return lat >= 41.3 && lat <= 51.1 && lon >= -5.2 && lon <= 9.7;
+}
+
 export default function AddSpotModal({ onAdd, onClose, existingIds = [], color = '#27500A' }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -53,8 +57,6 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
   const [selected, setSelected] = useState(null);
   const [spotName, setSpotName] = useState('');
   const [userPos, setUserPos] = useState(null);
-  const [manualLat, setManualLat] = useState('');
-  const [manualLon, setManualLon] = useState('');
   const [addError, setAddError] = useState('');
   const [mapFullscreen, setMapFullscreen] = useState(false);
   const [mapLayer, setMapLayer] = useState('osm');
@@ -135,7 +137,7 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
     };
   }, [mapFullscreen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // GPS centering on open
+  // GPS centering on open + IGN default if in France
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
@@ -147,6 +149,12 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
       { timeout: 5000 }
     );
   }, []);
+
+  useEffect(() => {
+    if (userPos && isInFrance(userPos.lat, userPos.lon)) {
+      setMapLayer('ign');
+    }
+  }, [userPos]);
 
   // Sync tile layer on toggle (both maps)
   useEffect(() => {
@@ -187,18 +195,14 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
     setSpotName(r.name);
     setResults([]);
     setQuery('');
-    setManualLat('');
-    setManualLon('');
     setAddError('');
   }
 
   function handleAddSpot() {
-    const lat = selected?.lat ?? (manualLat !== '' ? parseFloat(manualLat) : NaN);
-    const lon = selected?.lon ?? (manualLon !== '' ? parseFloat(manualLon) : NaN);
     if (!spotName.trim()) { setAddError('Nom du spot requis'); return; }
-    if (isNaN(lat) || isNaN(lon)) { setAddError('Sélectionnez un lieu sur la carte'); return; }
+    if (!selected) { setAddError('Sélectionnez un lieu sur la carte'); return; }
     const id = `spot-${spotName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}-${Date.now()}`;
-    onAdd({ id, name: spotName.trim(), lat, lon });
+    onAdd({ id, name: spotName.trim(), lat: selected.lat, lon: selected.lon });
     onClose();
   }
 
@@ -251,7 +255,6 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
               placeholder="Col, sommet, refuge, lac..."
               value={query}
               onChange={(e) => { setQuery(e.target.value); setAddError(''); }}
-              autoFocus
             />
             {searching && (
               <p className="text-xs text-[var(--color-text-3)] text-center">Recherche...</p>
@@ -298,24 +301,6 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
               value={spotName}
               onChange={(e) => { setSpotName(e.target.value); setAddError(''); }}
             />
-
-            {/* Coordonnées manuelles */}
-            <details>
-              <summary className="text-xs text-[var(--color-text-3)] cursor-pointer select-none list-none flex items-center gap-1">
-                <span>▶</span>
-                <span>Coordonnées manuelles</span>
-              </summary>
-              <div className="flex gap-2 mt-2">
-                <input type="number" placeholder="Latitude" step="any" value={manualLat}
-                  onChange={(e) => { setManualLat(e.target.value); setSelected(null); }}
-                  className="flex-1 bg-[var(--color-surface-2)] rounded-xl px-3 py-2.5 text-base border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-3)] focus:outline-none"
-                />
-                <input type="number" placeholder="Longitude" step="any" value={manualLon}
-                  onChange={(e) => { setManualLon(e.target.value); setSelected(null); }}
-                  className="flex-1 bg-[var(--color-surface-2)] rounded-xl px-3 py-2.5 text-base border border-[var(--color-border)] text-[var(--color-text)] placeholder-[var(--color-text-3)] focus:outline-none"
-                />
-              </div>
-            </details>
 
             {addError && <p className="text-xs text-[var(--color-alert-text)]">{addError}</p>}
 
