@@ -73,10 +73,15 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
   const fsMarkerRef = useRef(null);
   const fsTileRef = useRef(null);
 
+  const mapClickControllerRef = useRef(null);
   const handleMapClick = useCallback(async (lat, lon) => {
+    mapClickControllerRef.current?.abort();
+    const controller = new AbortController();
+    mapClickControllerRef.current = controller;
     try {
       const res = await fetch(
-        `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1&lang=fr`
+        `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1&lang=fr`,
+        { signal: controller.signal }
       );
       const data = await res.json();
       const f = data.features?.[0];
@@ -86,9 +91,11 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
         || `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
       setSelected({ lat, lon, name, label: name });
       setSpotName((prev) => prev || name);
-    } catch {
-      const name = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-      setSelected({ lat, lon, name, label: name });
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        const name = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        setSelected({ lat, lon, name, label: name });
+      }
     }
     setAddError('');
   }, []);
@@ -139,8 +146,10 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
 
   // GPS centering on open + IGN default if in France
   useEffect(() => {
+    let cancelled = false;
     navigator.geolocation?.getCurrentPosition(
       (pos) => {
+        if (cancelled) return;
         const { latitude: lat, longitude: lon } = pos.coords;
         setUserPos({ lat, lon });
         mapRef.current?.setView([lat, lon], 12);
@@ -148,6 +157,7 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
       undefined,
       { timeout: 5000 }
     );
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -176,18 +186,21 @@ export default function AddSpotModal({ onAdd, onClose, existingIds = [], color =
     }
   }, [selected, handleMapClick]);
 
-  // Debounced search
+  // Debounced search with AbortController to cancel stale requests
   useEffect(() => {
     if (!query || query.length < 2) { setResults([]); return; }
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await searchOutdoorSpots(query, userPos?.lat, userPos?.lon);
+        const res = await searchOutdoorSpots(query, userPos?.lat, userPos?.lon, controller.signal);
         setResults(res);
-      } catch { setResults([]); }
+      } catch (e) {
+        if (e.name !== 'AbortError') setResults([]);
+      }
       setSearching(false);
     }, 350);
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); controller.abort(); };
   }, [query, userPos]);
 
   function handleSelect(r) {

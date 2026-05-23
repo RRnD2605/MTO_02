@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGeolocate } from '../../hooks/useGeolocate.js';
 import GolfHeroCard from './GolfHeroCard.jsx';
 import TeeTimeSelector from './TeeTimeSelector.jsx';
@@ -245,6 +245,7 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
   const [startMin, setStartMin] = useState(0);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const toastTimerRef = useRef(null);
   const { gpsLabel, gpsActive, setGpsActive, geolocate, gpsLocation } = useGeolocate();
 
   const activeGolf = gpsActive
@@ -306,9 +307,10 @@ export default function GolfView({ golfs, t, lang, windUnit, onUpdateTimestamp }
   }
 
   function showToast(msg) {
+    clearTimeout(toastTimerRef.current);
     setToastMessage(msg);
     setToastVisible(true);
-    setTimeout(() => setToastVisible(false), 2000);
+    toastTimerRef.current = setTimeout(() => setToastVisible(false), 2000);
   }
 
   async function handleShare(game) {

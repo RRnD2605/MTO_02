@@ -99,10 +99,10 @@ const KEYWORD_MAP = {
   viewpoint: 'tourism=viewpoint',
 };
 
-export async function searchOutdoorSpots(query, userLat, userLon) {
+export async function searchOutdoorSpots(query, userLat, userLon, signal) {
   if (!query || query.length < 2) return [];
 
-  const photonResults = await searchPlaces(query);
+  const photonResults = await searchPlaces(query, signal);
   const outdoorResults = photonResults.filter((r) =>
     OUTDOOR_TYPES.some((t) => r.type?.toLowerCase().includes(t))
   );
@@ -120,6 +120,7 @@ export async function searchOutdoorSpots(query, userLat, userLon) {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: `data=${encodeURIComponent(overpassQuery)}`,
+          signal,
         });
         const data = await res.json();
         const overpassResults = data.elements
